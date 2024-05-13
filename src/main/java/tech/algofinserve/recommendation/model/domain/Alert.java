@@ -7,25 +7,30 @@ import java.io.Serializable;
 
 public class Alert implements Serializable {
 
-//    private @Id @GeneratedValue(strategy = GenerationType.TABLE) Long alertId;
+    //    private @Id @GeneratedValue(strategy = GenerationType.TABLE) Long alertId;
     private Long alertId;
 
     @JsonProperty("stocks")
     private String stocks;
 
-    @JsonProperty("trigger_prices")
+    // @JsonProperty("trigger_prices")
+    @JsonProperty("triggerPrices")
     private String triggerPrices;
 
-    @JsonProperty("triggered_at")
+    //   @JsonProperty("triggered_at")
+    @JsonProperty("triggeredAt")
     private String triggerdAt;
 
-    @JsonProperty("scan_name")
+    //   @JsonProperty("scan_name")
+    @JsonProperty("scanName")
     private String scanName;
 
-    @JsonProperty("webhook_url")
+    //   @JsonProperty("webhook_url")
+    @JsonProperty("webhookUrl")
     private String scanUrl;
 
-    @JsonProperty("alert_name")
+    //    @JsonProperty("alert_name")
+    @JsonProperty("alertName")
     private String alertName;
 
     public Alert() {}
