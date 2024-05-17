@@ -15,7 +15,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Component
 public class ChartInkAlertProcessingEngine {
 
-    //Need to develop this class as multithreading
+    //Need to develop this class as multithreadin
 
     public void processBuyAlert(Alert alert){
 
