@@ -13,24 +13,24 @@ public class Alert implements Serializable {
     @JsonProperty("stocks")
     private String stocks;
 
-    // @JsonProperty("trigger_prices")
-    @JsonProperty("triggerPrices")
+     @JsonProperty("trigger_prices")
+//    @JsonProperty("triggerPrices")
     private String triggerPrices;
 
-    //   @JsonProperty("triggered_at")
-    @JsonProperty("triggeredAt")
+      @JsonProperty("triggered_at")
+  //  @JsonProperty("triggeredAt")
     private String triggerdAt;
 
-    //   @JsonProperty("scan_name")
-    @JsonProperty("scanName")
+      @JsonProperty("scan_name")
+//    @JsonProperty("scanName")
     private String scanName;
 
-    //   @JsonProperty("webhook_url")
-    @JsonProperty("webhookUrl")
+       @JsonProperty("webhook_url")
+  //  @JsonProperty("webhookUrl")
     private String scanUrl;
 
-    //    @JsonProperty("alert_name")
-    @JsonProperty("alertName")
+        @JsonProperty("alert_name")
+    //@JsonProperty("alertName")
     private String alertName;
 
     public Alert() {}
@@ -116,11 +116,6 @@ public class Alert implements Serializable {
                 + ", triggerdAt="
                 + triggerdAt
                 + ", scanName="
-                + scanName
-                + ", scanUrl="
-                + scanUrl
-                + ", alertName="
-                + alertName
-                + "]";
+                + scanName+"]";
     }
 }
