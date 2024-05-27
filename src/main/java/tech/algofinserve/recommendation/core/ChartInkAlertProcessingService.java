@@ -1,10 +1,14 @@
 package tech.algofinserve.recommendation.core;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import tech.algofinserve.recommendation.cache.ChartInkAlertFactory;
 import tech.algofinserve.recommendation.constants.BuySell;
+import tech.algofinserve.recommendation.messaging.MessagingService;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
 
@@ -17,10 +21,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 @Service
 public class ChartInkAlertProcessingService {
 
-
     @Autowired
     BlockingQueue<String> myQueue;
+@EventListener(ApplicationReadyEvent.class)
+public void startMessagingService(){
+    new Thread(new MessagingService(myQueue)).start();
+    System.out.println("Messaging Service Started.....");
+}
 
+
+    @Async("taskExecutor")
     public void processBuyAlert(Alert alert) throws InterruptedException {
 
 

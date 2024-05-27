@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import tech.algofinserve.recommendation.core.ChartInkAlertProcessingService;
+import tech.algofinserve.recommendation.messaging.MessagingService;
 import tech.algofinserve.recommendation.model.domain.Alert;
 
 
@@ -19,9 +20,11 @@ public class ChartinkController {
         System.out.println(alert.toString());
         try {
             alertProcessing.processBuyAlert(alert);
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
         //   TelegramMessaging.sendMessage2(alert.toString());
     }
 
