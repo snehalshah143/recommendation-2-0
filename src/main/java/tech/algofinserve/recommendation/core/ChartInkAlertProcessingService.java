@@ -1,23 +1,27 @@
 package tech.algofinserve.recommendation.core;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import tech.algofinserve.recommendation.cache.ChartInkAlertFactory;
 import tech.algofinserve.recommendation.constants.BuySell;
-import tech.algofinserve.recommendation.messaging.TelegramMessaging;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
 
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-@Component
-public class ChartInkAlertProcessingEngine {
+@Service
+public class ChartInkAlertProcessingService {
 
-    //Need to develop this class as multithreadin
 
-    public void processBuyAlert(Alert alert){
+    @Autowired
+    BlockingQueue<String> myQueue;
+
+    public void processBuyAlert(Alert alert) throws InterruptedException {
 
 
         String[] stocksName=alert.getStocks().split(",");
@@ -29,9 +33,12 @@ public class ChartInkAlertProcessingEngine {
 
            if(ChartInkAlertFactory.stockAlertListForStockNameMap.containsKey(stockAlert.getStockCode())){
                ChartInkAlertFactory.stockAlertListForStockNameMap.get(stockAlert.getStockCode()).add(stockAlert);
-               TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+               String recommendation="R::"+stockAlert.toString();
+               myQueue.put(recommendation);
+            //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
            }else{
-               TelegramMessaging.sendMessage2(stockAlert.toString());
+             //  TelegramMessaging.sendMessage2(stockAlert.toString());
+               myQueue.put(stockAlert.toString());
                List<StockAlert> stockAlertList=new CopyOnWriteArrayList<>();
                stockAlertList.add(stockAlert);
                ChartInkAlertFactory.stockAlertListForStockNameMap.put(stockAlert.getStockCode(),stockAlertList);
