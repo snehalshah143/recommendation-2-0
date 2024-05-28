@@ -13,7 +13,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 @EnableAsync
 public class AsyncConfiguration {
     @Bean
-    public BlockingQueue<String> myQueue() {
+    public BlockingQueue<String> messageQueue() {
         return new PriorityBlockingQueue<>(100);
     }
     @Bean(name="taskExecutor")

@@ -22,10 +22,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class ChartInkAlertProcessingService {
 
     @Autowired
-    BlockingQueue<String> myQueue;
+    BlockingQueue<String> messageQueue;
 @EventListener(ApplicationReadyEvent.class)
 public void startMessagingService(){
-    new Thread(new MessagingService(myQueue)).start();
+    new Thread(new MessagingService(messageQueue)).start();
     System.out.println("Messaging Service Started.....");
 }
 
@@ -44,11 +44,11 @@ public void startMessagingService(){
            if(ChartInkAlertFactory.stockAlertListForStockNameMap.containsKey(stockAlert.getStockCode())){
                ChartInkAlertFactory.stockAlertListForStockNameMap.get(stockAlert.getStockCode()).add(stockAlert);
                String recommendation="R::"+stockAlert.toString();
-               myQueue.put(recommendation);
+               messageQueue.put(recommendation);
             //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
            }else{
              //  TelegramMessaging.sendMessage2(stockAlert.toString());
-               myQueue.put(stockAlert.toString());
+               messageQueue.put(stockAlert.toString());
                List<StockAlert> stockAlertList=new CopyOnWriteArrayList<>();
                stockAlertList.add(stockAlert);
                ChartInkAlertFactory.stockAlertListForStockNameMap.put(stockAlert.getStockCode(),stockAlertList);
@@ -67,7 +67,7 @@ public void startMessagingService(){
 
     }
 
-    private static StockAlert convertAlertToStockAlert(Alert alert,String[] stocksName, String[] prices, int i) {
+    private StockAlert convertAlertToStockAlert(Alert alert,String[] stocksName, String[] prices, int i) {
         String scanName = alert.getScanName();
         String[] triggeredAt=alert.getTriggerdAt().split(":");
         String hour=triggeredAt[0];

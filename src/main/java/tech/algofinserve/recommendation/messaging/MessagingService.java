@@ -7,19 +7,22 @@ import org.springframework.stereotype.Service;
 import java.util.concurrent.BlockingQueue;
 
 public class MessagingService implements Runnable{
-    BlockingQueue<String> myQueue;
-public MessagingService(BlockingQueue<String> myQueue){this.myQueue=myQueue;}
+    BlockingQueue<String> messageQueue;
+public MessagingService(BlockingQueue<String> messageQueue){this.messageQueue=messageQueue;}
 //    @Async("taskExecutor")
     public void sendMessage(String message) throws InterruptedException {
-        Thread.sleep(1000);
     TelegramMessaging.sendMessage2(message);
     }
 
     @Override
     public void run() {
+
         try {
-            String message=myQueue.take();
-            sendMessage(message);
+            while(true) {
+                String message = messageQueue.take();
+                sendMessage(message);
+            }
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
