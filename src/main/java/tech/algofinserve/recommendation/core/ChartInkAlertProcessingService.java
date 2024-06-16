@@ -83,7 +83,12 @@ public void startMessagingService(){
         }
 
         StockAlert stockAlert=new StockAlert();
-        stockAlert.setBuySell(BuySell.BUY);
+        if(scanName.contains("SELL")){
+            stockAlert.setBuySell(BuySell.SELL);
+        }else{
+            stockAlert.setBuySell(BuySell.BUY);
+        }
+
         stockAlert.setAlertDate(triggeredDate);
         stockAlert.setPrice(prices[i]);
         stockAlert.setStockCode(stocksName[i]);

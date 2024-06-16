@@ -60,7 +60,8 @@ public class TelegramMessaging {
   public static void sendMessage2(String text) {
     // String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
     // String chatId = "-1001565809937";
-    String chatId = "@AlGoStationBySnehal";
+    //String chatId = "@AlGoStationBySnehal";
+    String chatId = "@shreejitrades";
     //  String chatId = "@ideastoinvest";
  //   String text = "Hello world!";
     try {
