@@ -1,6 +1,7 @@
 package tech.algofinserve.recommendation.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -23,5 +24,13 @@ public class ChartinkController {
     }
 
     //   TelegramMessaging.sendMessage2(alert.toString());
+  }
+
+  @PostMapping(path = "/clear")
+  public ResponseEntity clearPreviousDayData() {
+
+    alertProcessing.clearPreviousDayData();
+
+    return ResponseEntity.ok("All Data Cleared.");
   }
 }

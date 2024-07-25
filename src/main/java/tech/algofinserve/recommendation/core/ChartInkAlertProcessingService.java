@@ -98,4 +98,8 @@ public class ChartInkAlertProcessingService {
     stockAlert.setScanName(scanName);
     return stockAlert;
   }
+
+  public void clearPreviousDayData() {
+    ChartInkAlertFactory.stockAlertListForStockNameMap.clear();
+  }
 }
