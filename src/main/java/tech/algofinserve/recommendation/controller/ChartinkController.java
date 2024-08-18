@@ -14,10 +14,24 @@ public class ChartinkController {
   @Autowired private ChartInkAlertProcessingService alertProcessing;
 
   @PostMapping(path = "/BuyAlert", consumes = "application/json")
-  public void alertsReceived(@RequestBody Alert alert) {
+  public void alertsReceivedBuy(@RequestBody Alert alert) {
     System.out.println(alert.toString());
     try {
       alertProcessing.processBuyAlert(alert);
+
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    //   TelegramMessaging.sendMessage2(alert.toString());
+  }
+
+  @PostMapping(path = "/SellAlert", consumes = "application/json")
+  public void alertsReceivedSell(@RequestBody Alert alert) {
+    // Adding Log
+    System.out.println(alert.toString());
+    try {
+      alertProcessing.processSellAlert(alert);
 
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
@@ -32,5 +46,15 @@ public class ChartinkController {
     alertProcessing.clearPreviousDayData();
 
     return ResponseEntity.ok("All Data Cleared.");
+  }
+
+  @PostMapping(path = "/GenerateChartinkReport")
+  public ResponseEntity generateChartinkReport() {
+
+    boolean status = alertProcessing.generateStockAlertOutputReport();
+
+    return status
+        ? ResponseEntity.ok("Report Generated.")
+        : ResponseEntity.ok("Report Generation Failed.");
   }
 }
