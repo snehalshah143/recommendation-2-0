@@ -1,3 +1,4 @@
+/*
 package tech.algofinserve.recommendation.mail;
 
 public class EmailDetails {
@@ -39,3 +40,4 @@ public class EmailDetails {
     this.attachment = attachment;
   }
 }
+*/

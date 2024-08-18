@@ -1,3 +1,4 @@
+/*
 package tech.algofinserve.recommendation.mail;
 
 import java.io.File;
@@ -84,3 +85,4 @@ public class EmailServiceImpl implements EmailService {
     }
   }
 }
+*/

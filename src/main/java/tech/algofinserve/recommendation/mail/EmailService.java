@@ -1,3 +1,4 @@
+/*
 package tech.algofinserve.recommendation.mail;
 
 public interface EmailService {
@@ -9,3 +10,4 @@ public interface EmailService {
   // To send an email with attachment
   String sendMailWithAttachment(EmailDetails details);
 }
+*/

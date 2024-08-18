@@ -1,3 +1,4 @@
+/*
 package tech.algofinserve.recommendation.mail;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,3 +29,4 @@ public class EmailController {
     return status;
   }
 }
+*/
