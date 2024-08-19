@@ -40,7 +40,7 @@ public class ChartinkController {
     //   TelegramMessaging.sendMessage2(alert.toString());
   }
 
-  @PostMapping(path = "/clear")
+  @PostMapping(path = "/Clear")
   public ResponseEntity clearPreviousDayData() {
 
     alertProcessing.clearPreviousDayData();

@@ -41,7 +41,7 @@ public class ChartInkAlertProcessingService {
 
     for (int i = 0; i < stocksName.length; i++) {
 
-      StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i);
+      StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.BUY);
 
       if (ChartInkAlertFactory.buyStockAlertListForStockNameMap.containsKey(
           stockAlert.getStockCode())) {
@@ -83,7 +83,7 @@ public class ChartInkAlertProcessingService {
 
     for (int i = 0; i < stocksName.length; i++) {
 
-      StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i);
+      StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.SELL);
 
       if (ChartInkAlertFactory.sellStockAlertListForStockNameMap.containsKey(
           stockAlert.getStockCode())) {
@@ -118,7 +118,7 @@ public class ChartInkAlertProcessingService {
   }
 
   private StockAlert convertAlertToStockAlert(
-      Alert alert, String[] stocksName, String[] prices, int i) {
+      Alert alert, String[] stocksName, String[] prices, int i, BuySell buySell) {
     String scanName = alert.getScanName();
     String[] triggeredAt = alert.getTriggerdAt().split(":");
     String hour = triggeredAt[0];
@@ -136,12 +136,7 @@ public class ChartInkAlertProcessingService {
     }
 
     StockAlert stockAlert = new StockAlert();
-    if (scanName.contains("SELL")) {
-      stockAlert.setBuySell(BuySell.SELL);
-    } else {
-      stockAlert.setBuySell(BuySell.BUY);
-    }
-
+    stockAlert.setBuySell(buySell);
     stockAlert.setAlertDate(triggeredDate);
     stockAlert.setPrice(prices[i]);
     stockAlert.setStockCode(stocksName[i]);
