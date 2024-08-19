@@ -33,7 +33,7 @@ public class ChartInkAlertProcessingService {
     System.out.println("Messaging Service Started.....");
   }
 
-  @Async("taskExecutor")
+  @Async("taskExecutorBuy")
   public void processBuyAlert(Alert alert) throws InterruptedException {
 
     String[] stocksName = alert.getStocks().split(",");
@@ -75,7 +75,7 @@ public class ChartInkAlertProcessingService {
     }
   }
 
-  @Async("taskExecutor")
+  @Async("taskExecutorSell")
   public void processSellAlert(Alert alert) throws InterruptedException {
 
     String[] stocksName = alert.getStocks().split(",");
