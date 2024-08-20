@@ -95,8 +95,8 @@ public class TelegramMessaging {
         wr.close();
       }
 
-      System.out.println(
-          "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());
+      /*      System.out.println(
+      "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());*/
       //  conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();
