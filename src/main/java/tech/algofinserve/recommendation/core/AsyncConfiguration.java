@@ -11,8 +11,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 @Configuration
 @EnableAsync
 public class AsyncConfiguration {
-  @Bean
-  public BlockingQueue<String> messageQueue() {
+  @Bean(name = "messageQueueBuy")
+  public BlockingQueue<String> messageQueueBuy() {
+    return new PriorityBlockingQueue<>(100);
+  }
+
+  @Bean(name = "messageQueueSell")
+  public BlockingQueue<String> messageQueueSell() {
     return new PriorityBlockingQueue<>(100);
   }
 

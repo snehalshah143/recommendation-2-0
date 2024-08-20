@@ -1,5 +1,6 @@
 package tech.algofinserve.recommendation.core;
 
+import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -7,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -25,11 +27,21 @@ public class ChartInkAlertProcessingService {
   public static String stockAlertReportFileName =
       "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
   Format formatter_DDMMYYYY = new SimpleDateFormat("yyyy-MM-dd");
-  @Autowired BlockingQueue<String> messageQueue;
+
+  @Autowired
+  @Qualifier("messageQueueBuy")
+  BlockingQueue<String> messageQueueBuy;
+
+  @Autowired
+  @Qualifier("messageQueueSell")
+  BlockingQueue<String> messageQueueSell;
 
   @EventListener(ApplicationReadyEvent.class)
-  public void startMessagingService() {
-    new Thread(new MessagingService(messageQueue)).start();
+  public void startMessagingService() throws IOException {
+    new Thread(new MessagingService(messageQueueBuy)).start();
+    new Thread(new MessagingService(messageQueueSell)).start();
+    //    new Thread(new MessagingService(messageQueueBuy)).start();
+    //    new Thread(new MessagingService(messageQueueSell)).start();
     System.out.println("Messaging Service Started.....");
   }
 
@@ -49,11 +61,11 @@ public class ChartInkAlertProcessingService {
             .get(stockAlert.getStockCode())
             .add(stockAlert);
         String recommendation = "R::" + stockAlert.toString();
-        messageQueue.put(recommendation);
+        messageQueueBuy.put(recommendation);
         //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
       } else {
         //  TelegramMessaging.sendMessage2(stockAlert.toString());
-        messageQueue.put(stockAlert.toString());
+        messageQueueBuy.put(stockAlert.toString());
         List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
         stockAlertList.add(stockAlert);
         ChartInkAlertFactory.buyStockAlertListForStockNameMap.put(
@@ -91,11 +103,11 @@ public class ChartInkAlertProcessingService {
             .get(stockAlert.getStockCode())
             .add(stockAlert);
         String recommendation = "R::" + stockAlert.toString();
-        messageQueue.put(recommendation);
+        messageQueueSell.put(recommendation);
         //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
       } else {
         //  TelegramMessaging.sendMessage2(stockAlert.toString());
-        messageQueue.put(stockAlert.toString());
+        messageQueueSell.put(stockAlert.toString());
         List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
         stockAlertList.add(stockAlert);
         ChartInkAlertFactory.sellStockAlertListForStockNameMap.put(
