@@ -8,7 +8,7 @@ public class TelegramMessaging {
   // static String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
   // static String CHAT_ID = "873305334";
   String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
-  String chatId = "@shreejitrades";
+  // String chatId = "@shreejitrades";
 
   /*  public static void main(String[] args) {
 
@@ -52,17 +52,19 @@ public class TelegramMessaging {
     }
   }
 
-  public URL url;
-  public HttpURLConnection conn;
-  public OutputStream outputStream;
+  /*  public URL url;
+   public HttpURLConnection conn;
+   public OutputStream outputStream;
 
-  public TelegramMessaging() throws IOException {
-    url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
-    conn = (HttpURLConnection) url.openConnection();
-    conn.setRequestMethod("POST");
-    conn.setDoOutput(true);
-    outputStream = conn.getOutputStream();
-  }
+   public TelegramMessaging() throws IOException {
+     url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
+     conn = (HttpURLConnection) url.openConnection();
+
+     conn.setRequestMethod("POST");
+     conn.setDoOutput(true);
+  //   conn.setRequestProperty("Connection", "Keep-Alive");
+     outputStream = conn.getOutputStream();
+   }*/
 
   public void sendMessage2(String text) {
     // String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
@@ -72,13 +74,13 @@ public class TelegramMessaging {
     //  String chatId = "@ideastoinvest";
     //   String text = "Hello world!";
 
-    // String chatId = "@shreejitrades";
+    String chatId = "@shreejitrades";
     try {
 
-      /*      URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
+      URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("POST");
-      conn.setDoOutput(true);*/
+      conn.setDoOutput(true);
 
       //    conn.setRequestProperty("Content-Type", "application/json");
       //    String jsonInputString = "{\"chat_id\": \"" + chatId + "\", \"text\": \"" + text +
@@ -88,25 +90,27 @@ public class TelegramMessaging {
       sb.append("chat_id=").append(URLEncoder.encode(chatId, "UTF-8"));
       sb.append("&text=").append(URLEncoder.encode(text, "UTF-8"));
 
-      //     try (OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream())) {
-      try (OutputStreamWriter wr = new OutputStreamWriter(outputStream)) {
+      try (OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream())) {
+        //   try (OutputStreamWriter wr = new OutputStreamWriter(outputStream)) {
         wr.write(sb.toString());
         wr.flush();
         wr.close();
       }
-      //       System.out.println(conn.getResponseCode());
+
+      System.out.println(conn.getResponseCode());
+
       /*      System.out.println(
       "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());*/
-      //  conn.disconnect();
+      conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
 
-  protected void finalize() throws Throwable {
+  /*  protected void finalize() throws Throwable {
     System.out.println("Finalized Method Executed.");
     conn.disconnect();
-  }
+  }*/
 
   public void sendDocument(String filePath) {
     // String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
@@ -141,6 +145,7 @@ public class TelegramMessaging {
           System.out.println(output);
       }*/
       System.out.println(conn.getResponseCode());
+
       conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();
