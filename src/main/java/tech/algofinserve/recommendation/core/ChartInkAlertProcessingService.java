@@ -24,8 +24,7 @@ import tech.algofinserve.recommendation.report.ReportGenerator;
 
 @Service
 public class ChartInkAlertProcessingService {
-  public static String stockAlertReportFileName =
-      "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
+
   Format formatter_DDMMYYYY = new SimpleDateFormat("yyyy-MM-dd");
 
   @Autowired
@@ -162,12 +161,14 @@ public class ChartInkAlertProcessingService {
   }
 
   public boolean generateStockAlertOutputReport() {
-
+    String stockAlertReportFileName =
+            "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
     try {
       Date date = new Date();
 
       String fileDate = formatter_DDMMYYYY.format(date);
       stockAlertReportFileName = stockAlertReportFileName.replace("DDMMYYYY", fileDate);
+      System.out.println("stockAlertReportFileName ::" + stockAlertReportFileName);
       ReportGenerator reportGenerator = new ReportGenerator();
       List<StockAlertOutput> stockRankOutputList =
           StockAlertOutputHelper.buildStockAlertOutputList();
