@@ -2,7 +2,7 @@ package tech.algofinserve.recommendation.core;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -13,22 +13,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AsyncConfiguration {
   @Bean(name = "messageQueueBuy")
   public BlockingQueue<String> messageQueueBuy() {
-    return new PriorityBlockingQueue<>(200);
+    return new LinkedBlockingQueue<>(200);
   }
 
   @Bean(name = "messageQueueSell")
   public BlockingQueue<String> messageQueueSell() {
-    return new PriorityBlockingQueue<>(200);
+    return new LinkedBlockingQueue<>(200);
   }
 
   @Bean(name = "messageQueueBuyEOD")
   public BlockingQueue<String> messageQueueBuyEOD() {
-    return new PriorityBlockingQueue<>(200);
+    return new LinkedBlockingQueue<>(200);
   }
 
   @Bean(name = "messageQueueSellEOD")
   public BlockingQueue<String> messageQueueSellEOD() {
-    return new PriorityBlockingQueue<>(200);
+    return new LinkedBlockingQueue<>(200);
   }
 
   @Bean(name = "taskExecutorBuy")
