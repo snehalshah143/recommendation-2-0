@@ -66,7 +66,7 @@ public class TelegramMessaging {
      outputStream = conn.getOutputStream();
    }*/
 
-  public void sendMessageEOD(String text) {
+  public boolean sendMessageEOD(String text) {
     // String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
     // String chatId = "-1001565809937";
     // String chatId = "@AlGoStationBySnehal";
@@ -105,10 +105,12 @@ public class TelegramMessaging {
       conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
+    return true;
   }
 
-  public void sendMessage2(String text) {
+  public boolean sendMessage2(String text) {
     // String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
     // String chatId = "-1001565809937";
     // String chatId = "@AlGoStationBySnehal";
@@ -147,7 +149,9 @@ public class TelegramMessaging {
       conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();
+      return false;
     }
+    return true;
   }
 
   /*  protected void finalize() throws Throwable {

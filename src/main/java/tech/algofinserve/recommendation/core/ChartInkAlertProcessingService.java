@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -16,6 +17,7 @@ import tech.algofinserve.recommendation.cache.ChartInkAlertFactory;
 import tech.algofinserve.recommendation.constants.BuySell;
 import tech.algofinserve.recommendation.helper.StockAlertOutputHelper;
 import tech.algofinserve.recommendation.messaging.MessagingService;
+import tech.algofinserve.recommendation.messaging.TelegramMessaging;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
 import tech.algofinserve.recommendation.model.domain.StockAlertOutput;
@@ -42,12 +44,22 @@ public class ChartInkAlertProcessingService {
   @Qualifier("messageQueueSellEOD")
   BlockingQueue<String> messageQueueSellEOD;
 
+  Function<String, Boolean> sendMessageNormal =
+      p -> {
+        return new TelegramMessaging().sendMessage2(p);
+      };
+
+  Function<String, Boolean> sendMessageEOD =
+      p -> {
+        return new TelegramMessaging().sendMessageEOD(p);
+      };
+
   @EventListener(ApplicationReadyEvent.class)
   public void startMessagingService() throws Exception {
-    new Thread(new MessagingService(messageQueueBuy)).start();
-    new Thread(new MessagingService(messageQueueSell)).start();
-    new Thread(new MessagingService(messageQueueBuyEOD)).start();
-    new Thread(new MessagingService(messageQueueSellEOD)).start();
+    new Thread(new MessagingService(messageQueueBuy, sendMessageNormal)).start();
+    new Thread(new MessagingService(messageQueueSell, sendMessageNormal)).start();
+    new Thread(new MessagingService(messageQueueBuyEOD, sendMessageEOD)).start();
+    new Thread(new MessagingService(messageQueueSellEOD, sendMessageEOD)).start();
     //    new Thread(new MessagingService(messageQueueBuy)).start();
     //    new Thread(new MessagingService(messageQueueSell)).start();
     System.out.println("Messaging Service Started.....");
