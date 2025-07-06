@@ -13,12 +13,22 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class AsyncConfiguration {
   @Bean(name = "messageQueueBuy")
   public BlockingQueue<String> messageQueueBuy() {
-    return new PriorityBlockingQueue<>(100);
+    return new PriorityBlockingQueue<>(200);
   }
 
   @Bean(name = "messageQueueSell")
   public BlockingQueue<String> messageQueueSell() {
-    return new PriorityBlockingQueue<>(100);
+    return new PriorityBlockingQueue<>(200);
+  }
+
+  @Bean(name = "messageQueueBuyEOD")
+  public BlockingQueue<String> messageQueueBuyEOD() {
+    return new PriorityBlockingQueue<>(200);
+  }
+
+  @Bean(name = "messageQueueSellEOD")
+  public BlockingQueue<String> messageQueueSellEOD() {
+    return new PriorityBlockingQueue<>(200);
   }
 
   @Bean(name = "taskExecutorBuy")
@@ -26,8 +36,19 @@ public class AsyncConfiguration {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(2);
     executor.setMaxPoolSize(2);
-    executor.setQueueCapacity(100);
-    executor.setThreadNamePrefix("ThreadPool-");
+    executor.setQueueCapacity(200);
+    executor.setThreadNamePrefix("ThreadPool-BUY-");
+    executor.initialize();
+    return executor;
+  }
+
+  @Bean(name = "taskExecutorBuyEOD")
+  public Executor getAsyncExecutorBuyEOD() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(2);
+    executor.setMaxPoolSize(2);
+    executor.setQueueCapacity(200);
+    executor.setThreadNamePrefix("ThreadPool-BUY-EOD-");
     executor.initialize();
     return executor;
   }
@@ -37,8 +58,19 @@ public class AsyncConfiguration {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
     executor.setCorePoolSize(2);
     executor.setMaxPoolSize(2);
-    executor.setQueueCapacity(100);
-    executor.setThreadNamePrefix("ThreadPool-");
+    executor.setQueueCapacity(200);
+    executor.setThreadNamePrefix("ThreadPool-SELL-");
+    executor.initialize();
+    return executor;
+  }
+
+  @Bean(name = "taskExecutorSellEOD")
+  public Executor getAsyncExecutorSellEOD() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(2);
+    executor.setMaxPoolSize(2);
+    executor.setQueueCapacity(200);
+    executor.setThreadNamePrefix("ThreadPool-SELL-EOD-");
     executor.initialize();
     return executor;
   }

@@ -26,12 +26,39 @@ public class ChartinkController {
     //   TelegramMessaging.sendMessage2(alert.toString());
   }
 
+  @PostMapping(path = "/BuyAlertEOD", consumes = "application/json")
+  public void alertsReceivedBuyEOD(@RequestBody Alert alert) {
+    System.out.println(alert.toString());
+    try {
+      alertProcessing.processBuyAlertEOD(alert);
+
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    //   TelegramMessaging.sendMessage2(alert.toString());
+  }
+
   @PostMapping(path = "/SellAlert", consumes = "application/json")
   public void alertsReceivedSell(@RequestBody Alert alert) {
     // Adding Log
     System.out.println(alert.toString());
     try {
       alertProcessing.processSellAlert(alert);
+
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
+    }
+
+    //   TelegramMessaging.sendMessage2(alert.toString());
+  }
+
+  @PostMapping(path = "/SellAlertEOD", consumes = "application/json")
+  public void alertsReceivedSellEOD(@RequestBody Alert alert) {
+    // Adding Log
+    System.out.println(alert.toString());
+    try {
+      alertProcessing.processSellAlertEOD(alert);
 
     } catch (InterruptedException e) {
       throw new RuntimeException(e);

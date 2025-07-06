@@ -1,6 +1,5 @@
 package tech.algofinserve.recommendation.core;
 
-import java.io.IOException;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -35,10 +34,20 @@ public class ChartInkAlertProcessingService {
   @Qualifier("messageQueueSell")
   BlockingQueue<String> messageQueueSell;
 
+  @Autowired
+  @Qualifier("messageQueueBuyEOD")
+  BlockingQueue<String> messageQueueBuyEOD;
+
+  @Autowired
+  @Qualifier("messageQueueSellEOD")
+  BlockingQueue<String> messageQueueSellEOD;
+
   @EventListener(ApplicationReadyEvent.class)
-  public void startMessagingService() throws IOException {
+  public void startMessagingService() throws Exception {
     new Thread(new MessagingService(messageQueueBuy)).start();
     new Thread(new MessagingService(messageQueueSell)).start();
+    new Thread(new MessagingService(messageQueueBuyEOD)).start();
+    new Thread(new MessagingService(messageQueueSellEOD)).start();
     //    new Thread(new MessagingService(messageQueueBuy)).start();
     //    new Thread(new MessagingService(messageQueueSell)).start();
     System.out.println("Messaging Service Started.....");
@@ -65,6 +74,48 @@ public class ChartInkAlertProcessingService {
       } else {
         //  TelegramMessaging.sendMessage2(stockAlert.toString());
         messageQueueBuy.put(stockAlert.toString());
+        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
+        stockAlertList.add(stockAlert);
+        ChartInkAlertFactory.buyStockAlertListForStockNameMap.put(
+            stockAlert.getStockCode(), stockAlertList);
+      }
+
+      if (ChartInkAlertFactory.buyStockAlertListForScanNameMap.containsKey(
+          stockAlert.getScanName())) {
+        ChartInkAlertFactory.buyStockAlertListForScanNameMap
+            .get(stockAlert.getScanName())
+            .add(stockAlert);
+      } else {
+
+        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
+        stockAlertList.add(stockAlert);
+        ChartInkAlertFactory.buyStockAlertListForScanNameMap.put(
+            stockAlert.getScanName(), stockAlertList);
+      }
+    }
+  }
+
+  @Async("taskExecutorBuyEOD")
+  public void processBuyAlertEOD(Alert alert) throws InterruptedException {
+
+    String[] stocksName = alert.getStocks().split(",");
+    String[] prices = alert.getTriggerPrices().split(",");
+
+    for (int i = 0; i < stocksName.length; i++) {
+
+      StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.BUY);
+
+      if (ChartInkAlertFactory.buyStockAlertListForStockNameMap.containsKey(
+          stockAlert.getStockCode())) {
+        ChartInkAlertFactory.buyStockAlertListForStockNameMap
+            .get(stockAlert.getStockCode())
+            .add(stockAlert);
+        String recommendation = "R::" + stockAlert.toString();
+        messageQueueBuyEOD.put(recommendation);
+        //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+      } else {
+        //  TelegramMessaging.sendMessage2(stockAlert.toString());
+        messageQueueBuyEOD.put(stockAlert.toString());
         List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
         stockAlertList.add(stockAlert);
         ChartInkAlertFactory.buyStockAlertListForStockNameMap.put(
@@ -128,6 +179,48 @@ public class ChartInkAlertProcessingService {
     }
   }
 
+  @Async("taskExecutorSellEOD")
+  public void processSellAlertEOD(Alert alert) throws InterruptedException {
+
+    String[] stocksName = alert.getStocks().split(",");
+    String[] prices = alert.getTriggerPrices().split(",");
+
+    for (int i = 0; i < stocksName.length; i++) {
+
+      StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.SELL);
+
+      if (ChartInkAlertFactory.sellStockAlertListForStockNameMap.containsKey(
+          stockAlert.getStockCode())) {
+        ChartInkAlertFactory.sellStockAlertListForStockNameMap
+            .get(stockAlert.getStockCode())
+            .add(stockAlert);
+        String recommendation = "R::" + stockAlert.toString();
+        messageQueueSellEOD.put(recommendation);
+        //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+      } else {
+        //  TelegramMessaging.sendMessage2(stockAlert.toString());
+        messageQueueSellEOD.put(stockAlert.toString());
+        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
+        stockAlertList.add(stockAlert);
+        ChartInkAlertFactory.sellStockAlertListForStockNameMap.put(
+            stockAlert.getStockCode(), stockAlertList);
+      }
+
+      if (ChartInkAlertFactory.sellStockAlertListForScanNameMap.containsKey(
+          stockAlert.getScanName())) {
+        ChartInkAlertFactory.sellStockAlertListForScanNameMap
+            .get(stockAlert.getScanName())
+            .add(stockAlert);
+      } else {
+
+        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
+        stockAlertList.add(stockAlert);
+        ChartInkAlertFactory.sellStockAlertListForScanNameMap.put(
+            stockAlert.getScanName(), stockAlertList);
+      }
+    }
+  }
+
   private StockAlert convertAlertToStockAlert(
       Alert alert, String[] stocksName, String[] prices, int i, BuySell buySell) {
     String scanName = alert.getScanName();
@@ -161,8 +254,7 @@ public class ChartInkAlertProcessingService {
   }
 
   public boolean generateStockAlertOutputReport() {
-    String stockAlertReportFileName =
-            "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
+    String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
     try {
       Date date = new Date();
 

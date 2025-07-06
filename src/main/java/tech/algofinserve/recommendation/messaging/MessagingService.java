@@ -1,14 +1,15 @@
 package tech.algofinserve.recommendation.messaging;
 
-
-import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 
 public class MessagingService implements Runnable {
   BlockingQueue<String> messageQueue;
   TelegramMessaging telegramMessaging = new TelegramMessaging();
 
-  public MessagingService(BlockingQueue<String> messageQueue) throws IOException {
+  public MessagingService(BlockingQueue<String> messageQueue) throws Exception {
+    if (messageQueue == null) {
+      throw new Exception("Queue is null");
+    }
     this.messageQueue = messageQueue;
   }
   //    @Async("taskExecutor")
