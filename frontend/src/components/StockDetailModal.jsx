@@ -1,0 +1,491 @@
+import React, { useState, useEffect } from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { cn } from '../lib/utils';
+
+const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
+  const [showOrderForm, setShowOrderForm] = useState(false);
+  const [orderForm, setOrderForm] = useState({
+    price: '',
+    quantity: '',
+    orderType: 'Market',
+    productType: 'CNC',
+    validity: 'Day'
+  });
+  const [selectedTimeframe, setSelectedTimeframe] = useState('Intraday');
+  const [ltp, setLtp] = useState(0);
+
+  // Generate dummy LTP (Last Traded Price)
+  useEffect(() => {
+    if (stock?.price) {
+      const basePrice = parseFloat(stock.price);
+      // Add some random variation to simulate real-time price
+      const variation = (Math.random() - 0.5) * 0.02; // ±1% variation
+      setLtp(basePrice * (1 + variation));
+    }
+  }, [stock]);
+
+  // Dummy targets and stoplosses based on timeframe
+  const getTargetsAndStoplosses = (timeframe) => {
+    const basePrice = ltp || stock?.price || 0;
+    const multipliers = {
+      'Intraday': { target: 0.02, stoploss: 0.01 },
+      'Shortterm': { target: 0.05, stoploss: 0.03 },
+      'Positional': { target: 0.10, stoploss: 0.05 },
+      'Longterm': { target: 0.20, stoploss: 0.10 }
+    };
+    
+    const mult = multipliers[timeframe] || multipliers['Intraday'];
+    
+    return {
+      target1: (basePrice * (1 + mult.target)).toFixed(2),
+      target2: (basePrice * (1 + mult.target * 1.5)).toFixed(2),
+      target3: (basePrice * (1 + mult.target * 2)).toFixed(2),
+      stoploss1: (basePrice * (1 - mult.stoploss)).toFixed(2),
+      stoploss2: (basePrice * (1 - mult.stoploss * 1.5)).toFixed(2),
+      hardStoploss: (basePrice * (1 - mult.stoploss * 2)).toFixed(2)
+    };
+  };
+
+  // Dummy price action alerts
+  const priceActionAlerts = [
+    'Price crossed Day High',
+    'Price crossed Week High',
+    'Volume spike detected',
+    'RSI oversold condition',
+    'MACD bullish crossover',
+    'Support level holding strong',
+    'Resistance breakout imminent',
+    'Moving average golden cross'
+  ];
+
+  // Filter alerts for this stock (latest first)
+  const stockAlerts = alerts
+    .filter(alert => alert.symbol === stock?.symbol)
+    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+  // Calculate alert duration based on current consecutive streak
+  const getAlertDuration = () => {
+    if (!alerts || alerts.length === 0) return "No alerts";
+    
+    // Determine the action type based on stock signal
+    const actionType = stock?.action || 'BUY';
+    
+    // Get all alerts for this stock, sorted by date (newest first)
+    const stockAlerts = alerts
+      .filter(alert => alert.symbol === stock?.symbol)
+      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    if (stockAlerts.length === 0) return `No ${actionType.toLowerCase()} alerts`;
+    
+    // Count consecutive alerts of the same type from the most recent
+    let consecutiveCount = 0;
+    let currentStreakType = null;
+    
+    for (const alert of stockAlerts) {
+      if (currentStreakType === null) {
+        // First alert - start the streak
+        currentStreakType = alert.action;
+        if (alert.action === actionType) {
+          consecutiveCount = 1;
+        } else {
+          // Most recent alert is different type, so no current streak
+          break;
+        }
+      } else if (alert.action === currentStreakType) {
+        // Continue the current streak
+        consecutiveCount++;
+      } else {
+        // Different action type - streak is broken
+        break;
+      }
+    }
+    
+    // Check if the current streak matches the stock's action type
+    if (currentStreakType !== actionType || consecutiveCount === 0) {
+      return `No current ${actionType.toLowerCase()} streak`;
+    }
+    
+    // Calculate duration based on consecutive count
+    if (consecutiveCount === 1) return "since 1 day";
+    if (consecutiveCount <= 7) return `since ${consecutiveCount} days`;
+    if (consecutiveCount <= 30) return `since ${Math.floor(consecutiveCount / 7)} week${Math.floor(consecutiveCount / 7) > 1 ? 's' : ''}`;
+    return `since ${consecutiveCount} days`;
+  };
+
+  const handleOrderSubmit = (e) => {
+    e.preventDefault();
+    // Here you would integrate with actual trading API
+    console.log('Order placed:', { stock: stock.symbol, ...orderForm });
+    alert(`Order placed for ${stock.symbol}: ${orderForm.quantity} shares at ${orderForm.price}`);
+    setShowOrderForm(false);
+  };
+
+  const targets = getTargetsAndStoplosses(selectedTimeframe);
+
+  if (!stock) return null;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+
+        {/* Upper Frame - Stock Info, Order Button, Targets & Stoplosses, and Trend */}
+        <div className="p-4 bg-gray-50 rounded-lg mb-4 flex-shrink-0">
+          <div className="flex items-center justify-between gap-4">
+            {/* Left Side - Stock Info, Order Button, and Targets & Stoplosses */}
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm text-gray-600">LTP: ₹{ltp.toFixed(2)}</p>
+                  <h3 className="text-xl font-bold">{stock.symbol}</h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {getAlertDuration()}
+                  </p>
+                </div>
+                {stock.action === 'BUY' ? (
+                  <Button
+                    onClick={() => setShowOrderForm(true)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-bold"
+                  >
+                    Buy
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={() => setShowOrderForm(true)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg font-bold"
+                  >
+                    Sell
+                  </Button>
+                )}
+              </div>
+
+              {/* Targets & Stoplosses with Timeframe Filter */}
+              <div className="flex flex-col gap-2">
+                {/* Timeframe Filter */}
+                <div className="flex items-center gap-2">
+                  <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                    <SelectTrigger className="w-32 h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Intraday">Intraday</SelectItem>
+                      <SelectItem value="Shortterm">Shortterm</SelectItem>
+                      <SelectItem value="Positional">Positional</SelectItem>
+                      <SelectItem value="Longterm">Longterm</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Targets and Stoplosses Grid */}
+                <div className="grid grid-cols-3 gap-4 text-xs">
+                  {/* Column 1: T1 and SL1 */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-green-600 font-medium">T1:</span>
+                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).target1}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-red-600 font-medium">SL1:</span>
+                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).stoploss1}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Column 2: T2 and SL2 */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-green-600 font-medium">T2:</span>
+                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).target2}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-red-600 font-medium">SL2:</span>
+                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).stoploss2}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Column 3: T3 and Hard SL */}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1">
+                      <span className="text-green-600 font-medium">T3:</span>
+                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).target3}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-red-600 font-medium">Hard SL:</span>
+                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).hardStoploss}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Side - Trend Analysis */}
+            <div className="flex gap-4">
+              {[
+                { name: 'Intraday', value: '+2.4%', status: 'bullish' },
+                { name: 'Short Term', value: '+5.8%', status: 'bullish' },
+                { name: 'Positional', value: '+12.3%', status: 'bullish' },
+                { name: 'Long Term', value: '+28.7%', status: 'bullish' }
+              ].map((trend) => (
+                <div key={trend.name} className="text-center p-2 bg-white rounded border">
+                  <div className="text-xs text-gray-600 mb-1">{trend.name}</div>
+                  <div className="flex items-center justify-center gap-1">
+                    <span className={cn(
+                      "text-sm font-semibold",
+                      trend.status === 'bullish' ? "text-green-600" : "text-red-600"
+                    )}>
+                      {trend.value}
+                    </span>
+                    <div className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      trend.status === 'bullish' ? "bg-green-500" : "bg-red-500"
+                    )}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Order Form Modal */}
+        {showOrderForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="w-96 p-6">
+              <CardHeader>
+                <CardTitle>
+                  Place {stock.action} Order - {stock.symbol}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleOrderSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Price</label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={orderForm.price}
+                      onChange={(e) => setOrderForm({...orderForm, price: e.target.value})}
+                      placeholder="Enter price"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Quantity</label>
+                    <Input
+                      type="number"
+                      value={orderForm.quantity}
+                      onChange={(e) => setOrderForm({...orderForm, quantity: e.target.value})}
+                      placeholder="Enter quantity"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Order Type</label>
+                    <Select
+                      value={orderForm.orderType}
+                      onValueChange={(value) => setOrderForm({...orderForm, orderType: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Market">Market</SelectItem>
+                        <SelectItem value="Limit">Limit</SelectItem>
+                        <SelectItem value="SL">SL</SelectItem>
+                        <SelectItem value="SL-M">SL-M</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Product Type</label>
+                    <Select
+                      value={orderForm.productType}
+                      onValueChange={(value) => setOrderForm({...orderForm, productType: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CNC">CNC</SelectItem>
+                        <SelectItem value="MIS">MIS</SelectItem>
+                        <SelectItem value="NRML">NRML</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Validity</label>
+                    <Select
+                      value={orderForm.validity}
+                      onValueChange={(value) => setOrderForm({...orderForm, validity: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Day">Day</SelectItem>
+                        <SelectItem value="IOC">IOC</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex gap-2 pt-4">
+                    <Button type="submit" className="flex-1">
+                      Place Order
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowOrderForm(false)}
+                      className="flex-1"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Middle and Bottom Frame - Combined Layout */}
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            {/* Left Column - Alert History */}
+            <Card className="lg:col-span-2">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Alert History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {stockAlerts.length === 0 ? (
+                    <p className="text-gray-500 text-xs">No alerts found</p>
+                  ) : (
+                    stockAlerts.map((alert, index) => (
+                      <div
+                        key={index}
+                        className={cn(
+                          "p-2 rounded text-xs border-l-2",
+                          alert.action === 'BUY' 
+                            ? "border-green-500 bg-green-50" 
+                            : "border-red-500 bg-red-50"
+                        )}
+                      >
+                        <div className="font-medium">
+                          {alert.action} @ ₹{alert.price?.toFixed(2) || '0.00'}
+                        </div>
+                        <div className="text-gray-600 text-xs">
+                          {alert.source} – {new Date(alert.timestamp).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Middle Column - Price Action Alerts */}
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Price Action</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {priceActionAlerts.slice(0, 6).map((alert, index) => (
+                    <div
+                      key={index}
+                      className="p-1.5 bg-blue-50 border-l-2 border-blue-500 rounded text-xs"
+                    >
+                      {alert}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Right Column - Fundamental Data */}
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Fundamentals</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {[
+                  { label: 'P/E Ratio', value: '24.5' },
+                  { label: 'ROE', value: '18.2%' },
+                  { label: 'ROC', value: '15.8%' },
+                  { label: 'Book Value', value: '₹1,250' },
+                  { label: 'Market Cap', value: '₹2.5L Cr' },
+                  { label: 'Sales (Qtr)', value: '₹15,200 Cr' }
+                ].map((item) => (
+                  <div key={item.label} className="flex justify-between items-center py-1 text-xs">
+                    <span className="text-gray-600">{item.label}</span>
+                    <span className="font-semibold text-gray-800">{item.value}</span>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+
+            {/* Far Right Column - Technical Indicators */}
+            <Card className="lg:col-span-1">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Technical</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-1">
+                {[
+                  { label: 'RSI', value: '68.5', status: 'neutral' },
+                  { label: 'MACD', value: 'Bullish', status: 'bullish' },
+                  { label: 'EMA 21', value: '₹2,420', status: 'bullish' },
+                  { label: 'Supertrend', value: 'Bullish', status: 'bullish' },
+                  { label: 'Support', value: '₹2,380', status: 'neutral' },
+                  { label: 'Resistance', value: '₹2,580', status: 'neutral' }
+                ].map((item) => (
+                  <div key={item.label} className="flex justify-between items-center py-1 text-xs">
+                    <span className="text-gray-600">{item.label}</span>
+                    <div className="flex items-center gap-1">
+                      <span className={cn(
+                        "font-semibold",
+                        item.status === 'bullish' ? "text-green-600" : 
+                        item.status === 'bearish' ? "text-red-600" : "text-gray-800"
+                      )}>
+                        {item.value}
+                      </span>
+                      {item.status !== 'neutral' && (
+                        <div className={cn(
+                          "w-1 h-1 rounded-full",
+                          item.status === 'bullish' ? "bg-green-500" : "bg-red-500"
+                        )}></div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </div>
+
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default StockDetailModal;
