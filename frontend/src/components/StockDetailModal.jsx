@@ -29,6 +29,30 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
   const [selectedTimeframe, setSelectedTimeframe] = useState('Intraday');
   const [ltp, setLtp] = useState(0);
 
+  // Reset form state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowOrderForm(false);
+      setOrderForm({
+        price: '',
+        quantity: '',
+        orderType: 'Market',
+        productType: 'CNC',
+        validity: 'Day'
+      });
+    }
+  }, [isOpen]);
+
+  // Pre-fill price with LTP when order form opens
+  useEffect(() => {
+    if (showOrderForm && ltp > 0) {
+      setOrderForm(prev => ({
+        ...prev,
+        price: ltp.toFixed(2)
+      }));
+    }
+  }, [showOrderForm, ltp]);
+
   // Generate dummy LTP (Last Traded Price)
   useEffect(() => {
     if (stock?.price) {
@@ -261,71 +285,102 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
 
         {/* Order Form Modal */}
         {showOrderForm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="w-96 p-6">
-              <CardHeader>
-                <CardTitle>
-                  Place {stock.action} Order - {stock.symbol}
-                </CardTitle>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowOrderForm(false);
+              }
+            }}
+          >
+            <Card className="w-full max-w-md mx-auto">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-lg">
+                      Place {stock.action} Order - {stock.symbol}
+                    </CardTitle>
+                    <p className="text-sm text-gray-600">
+                      LTP: ₹{ltp.toFixed(2)}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowOrderForm(false)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleOrderSubmit} className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Price</label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={orderForm.price}
-                      onChange={(e) => setOrderForm({...orderForm, price: e.target.value})}
-                      placeholder="Enter price"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Quantity</label>
-                    <Input
-                      type="number"
-                      value={orderForm.quantity}
-                      onChange={(e) => setOrderForm({...orderForm, quantity: e.target.value})}
-                      placeholder="Enter quantity"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Order Type</label>
-                    <Select
-                      value={orderForm.orderType}
-                      onValueChange={(value) => setOrderForm({...orderForm, orderType: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Market">Market</SelectItem>
-                        <SelectItem value="Limit">Limit</SelectItem>
-                        <SelectItem value="SL">SL</SelectItem>
-                        <SelectItem value="SL-M">SL-M</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Price</label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        value={orderForm.price}
+                        onChange={(e) => setOrderForm({...orderForm, price: e.target.value})}
+                        placeholder="Enter price"
+                        required
+                        className="w-full"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Quantity</label>
+                      <Input
+                        type="number"
+                        value={orderForm.quantity}
+                        onChange={(e) => setOrderForm({...orderForm, quantity: e.target.value})}
+                        placeholder="Enter quantity"
+                        required
+                        className="w-full"
+                      />
+                    </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Product Type</label>
-                    <Select
-                      value={orderForm.productType}
-                      onValueChange={(value) => setOrderForm({...orderForm, productType: value})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="CNC">CNC</SelectItem>
-                        <SelectItem value="MIS">MIS</SelectItem>
-                        <SelectItem value="NRML">NRML</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Order Type</label>
+                      <Select
+                        value={orderForm.orderType}
+                        onValueChange={(value) => setOrderForm({...orderForm, orderType: value})}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Market">Market</SelectItem>
+                          <SelectItem value="Limit">Limit</SelectItem>
+                          <SelectItem value="SL">SL</SelectItem>
+                          <SelectItem value="SL-M">SL-M</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Product Type</label>
+                      <Select
+                        value={orderForm.productType}
+                        onValueChange={(value) => setOrderForm({...orderForm, productType: value})}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="CNC">CNC</SelectItem>
+                          <SelectItem value="MIS">MIS</SelectItem>
+                          <SelectItem value="NRML">NRML</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   <div>
@@ -334,7 +389,7 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                       value={orderForm.validity}
                       onValueChange={(value) => setOrderForm({...orderForm, validity: value})}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -344,9 +399,12 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                     </Select>
                   </div>
 
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="flex-1">
-                      Place Order
+                  <div className="flex gap-3 pt-4">
+                    <Button 
+                      type="submit" 
+                      className="flex-1 bg-green-600 hover:bg-green-700"
+                    >
+                      Place {stock.action} Order
                     </Button>
                     <Button
                       type="button"

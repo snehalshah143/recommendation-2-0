@@ -24,6 +24,22 @@ function loadFavorites() {
 }
 function saveFavorites(f) { localStorage.setItem('trademon_favs', JSON.stringify(f)) }
 
+function filterScanName(scanName) {
+  if (!scanName) return scanName;
+  
+  // Fields to ignore from scan name
+  const fieldsToIgnore = ['Snehal', 'Test', 'Buy', 'Sell'];
+  
+  // Split by common delimiters and filter out ignored fields
+  let filteredParts = scanName.split(/[,\s\-_]+/)
+    .filter(part => !fieldsToIgnore.some(field => 
+      part.toLowerCase().includes(field.toLowerCase())
+    ));
+  
+  // Join back with space and clean up extra spaces
+  return filteredParts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
 export default function AlertsView() {
   const [alerts] = useSseAlerts()
   const [favs, setFavs] = useState(loadFavorites())
@@ -52,7 +68,7 @@ export default function AlertsView() {
   const viewStockHistory = async (stock) => {
     const res = await fetch('/api/alerts/stock/' + encodeURIComponent(stock) + '?days=7')
     const data = await res.json()
-    alert('Last week alerts for ' + stock + '\n' + data.map(d=> new Date(d.alertDate).toLocaleString() + ' :: ' + d.scanName).join('\n'))
+    alert('Last week alerts for ' + stock + '\n' + data.map(d=> new Date(d.alertDate).toLocaleString() + ' :: ' + filterScanName(d.scanName)).join('\n'))
   }
 
   return (
@@ -77,7 +93,7 @@ export default function AlertsView() {
                   <td><a href="#" onClick={(e)=>{e.preventDefault(); viewStockHistory(a.stockCode)}}>{a.stockCode}</a></td>
                   <td>{a.price}</td>
                   <td>{new Date(a.alertDate).toLocaleString()}</td>
-                  <td>{a.scanName}</td>
+                  <td>{filterScanName(a.scanName)}</td>
                   <td><span className={'badge ' + (a.buySell==='BUY' ? 'buy':'sell')}>{a.buySell}</span></td>
                   <td><input type="checkbox" className="fav" checked={(favs.stocks||[]).includes(a.stockCode)} onChange={()=>toggleStock(a.stockCode)} /></td>
                 </tr>

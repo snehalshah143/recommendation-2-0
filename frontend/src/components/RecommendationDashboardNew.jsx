@@ -155,36 +155,36 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     );
   };
 
-  const openBasketDropdown = (e) => {
+  const toggleBasketDropdown = (e) => {
     e.stopPropagation();
-    setBasketDropdownOpen(true);
+    setBasketDropdownOpen(!basketDropdownOpen);
     setTimeframeDropdownOpen(false);
     setPanelDropdownOpen(false);
     setTimeFilterDropdownOpen(false);
   };
 
-  const openTimeframeDropdown = (e) => {
+  const toggleTimeframeDropdown = (e) => {
     e.stopPropagation();
     setBasketDropdownOpen(false);
-    setTimeframeDropdownOpen(true);
+    setTimeframeDropdownOpen(!timeframeDropdownOpen);
     setPanelDropdownOpen(false);
     setTimeFilterDropdownOpen(false);
   };
 
-  const openPanelDropdown = (e) => {
+  const togglePanelDropdown = (e) => {
     e.stopPropagation();
     setBasketDropdownOpen(false);
     setTimeframeDropdownOpen(false);
-    setPanelDropdownOpen(true);
+    setPanelDropdownOpen(!panelDropdownOpen);
     setTimeFilterDropdownOpen(false);
   };
 
-  const openTimeFilterDropdown = (e) => {
+  const toggleTimeFilterDropdown = (e) => {
     e.stopPropagation();
     setBasketDropdownOpen(false);
     setTimeframeDropdownOpen(false);
     setPanelDropdownOpen(false);
-    setTimeFilterDropdownOpen(true);
+    setTimeFilterDropdownOpen(!timeFilterDropdownOpen);
   };
 
   const togglePanel = (panel) => {
@@ -544,7 +544,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           {/* Stock Baskets Dropdown */}
           <div className="relative dropdown-container">
             <button
-              onClick={openBasketDropdown}
+              onClick={toggleBasketDropdown}
               data-dropdown-button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -586,7 +586,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           {/* Buy/Sell Dropdown */}
           <div className="relative dropdown-container">
             <button
-              onClick={openPanelDropdown}
+              onClick={togglePanelDropdown}
               data-dropdown-button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
@@ -686,7 +686,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           {/* Timeframes Dropdown */}
           <div className="relative dropdown-container">
             <button
-              onClick={openTimeframeDropdown}
+              onClick={toggleTimeframeDropdown}
               data-dropdown-button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
@@ -728,7 +728,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           {/* Alerts For Dropdown */}
           <div className="relative dropdown-container">
             <button
-              onClick={openTimeFilterDropdown}
+              onClick={toggleTimeFilterDropdown}
               data-dropdown-button
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
@@ -1165,12 +1165,12 @@ function AlertCard({ alert, allAlerts }) {
           alert.action === 'BUY' ? 'text-green-600' : 'text-red-600'
         )}>
           {alert.action} - {alert.symbol} 
+          <span className="ml-2">@ ₹{alert.price?.toFixed(2) || '0.00'}</span>
           {alertDuration && (
             <span className="text-xs text-gray-500 ml-2" style={{ fontSize: '10px' }}>
               (since {alertDuration.days} day{alertDuration.days > 1 ? 's' : ''})
             </span>
           )}
-          <span className="ml-2">@ ₹{alert.price?.toFixed(2) || '0.00'}</span>
         </div>
         <div className="text-xs text-gray-500">
           {alert.source} - {formatTimestamp(alert.timestamp)}
