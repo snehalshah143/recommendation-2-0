@@ -402,7 +402,12 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                   <div className="flex gap-3 pt-4">
                     <Button 
                       type="submit" 
-                      className="flex-1 bg-green-600 hover:bg-green-700"
+                      className={cn(
+                        "flex-1",
+                        stock.action === 'BUY' 
+                          ? "bg-green-600 hover:bg-green-700" 
+                          : "bg-red-600 hover:bg-red-700"
+                      )}
                     >
                       Place {stock.action} Order
                     </Button>
@@ -410,7 +415,7 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                       type="button"
                       variant="outline"
                       onClick={() => setShowOrderForm(false)}
-                      className="flex-1"
+                      className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 border-gray-300"
                     >
                       Cancel
                     </Button>
