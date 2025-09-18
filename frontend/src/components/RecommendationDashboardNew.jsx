@@ -729,7 +729,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <span className="text-sm font-medium">
-                Timeframes ({selectedTimeframes.length})
+                Trade Duration ({selectedTimeframes.length})
               </span>
               <svg className={`w-4 h-4 transition-transform ${timeframeDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
