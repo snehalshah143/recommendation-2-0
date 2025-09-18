@@ -147,9 +147,27 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     setCustomBasketStocks(customBasketStocks.filter(s => s !== stock));
   };
 
+  // Helper function to extract timeframe from scan name
+  const getTimeframeFromScanName = (scanName) => {
+    if (!scanName) return 'INTRADAY';
+    
+    const upperScanName = scanName.toUpperCase();
+    if (upperScanName.includes('INTRADAY')) {
+      return 'INTRADAY';
+    } else if (upperScanName.includes('POSITIONAL')) {
+      return 'POSITIONAL';
+    } else if (upperScanName.includes('SHORT') || upperScanName.includes('SHORTTERM')) {
+      return 'SHORTTERM';
+    } else if (upperScanName.includes('LONG') || upperScanName.includes('LONGTERM')) {
+      return 'LONGTERM';
+    }
+    
+    return 'INTRADAY'; // Default
+  };
+
   const toggleTimeframe = (timeframe) => {
     setSelectedTimeframes(prev => 
-      prev.includes(timeframe) 
+      prev.includes(timeframe)
         ? prev.filter(t => t !== timeframe)
         : [...prev, timeframe]
     );
@@ -266,13 +284,33 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         });
         
         console.log('✅ Converted alerts:', convertedAlerts);
-        setAlerts(convertedAlerts);
+        
+        // Apply filters
+        const filteredAlerts = convertedAlerts.filter(alert => {
+          // Filter by selected panels (BUY/SELL/SIDEWAYS)
+          if (selectedPanels.length > 0 && !selectedPanels.includes(alert.action)) {
+            return false;
+          }
+          
+          // Filter by selected timeframes (based on scanName)
+          if (selectedTimeframes.length > 0) {
+            const alertTimeframe = getTimeframeFromScanName(alert.source);
+            if (!selectedTimeframes.includes(alertTimeframe)) {
+              return false;
+            }
+          }
+          
+          return true;
+        });
+        
+        console.log('🔍 Filtered alerts:', filteredAlerts);
+        setAlerts(filteredAlerts);
       }
     } catch (error) {
       console.error('Failed to fetch alerts:', error);
       setAlerts([]);
     }
-  }, [apiBaseUrl]);
+  }, [apiBaseUrl, selectedPanels, selectedTimeframes]);
 
   // SSE connection for real-time alerts
   useEffect(() => {

@@ -26,7 +26,7 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
     productType: 'CNC',
     validity: 'Day'
   });
-  const [selectedTimeframe, setSelectedTimeframe] = useState('Intraday');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('INTRADAY');
   const [ltp, setLtp] = useState(0);
 
   // Reset form state when modal closes
@@ -63,17 +63,18 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
     }
   }, [stock]);
 
-  // Dummy targets and stoplosses based on timeframe
+
+  // Get targets and stoplosses - dummy calculations
   const getTargetsAndStoplosses = (timeframe) => {
     const basePrice = ltp || stock?.price || 0;
     const multipliers = {
-      'Intraday': { target: 0.02, stoploss: 0.01 },
-      'Shortterm': { target: 0.05, stoploss: 0.03 },
-      'Positional': { target: 0.10, stoploss: 0.05 },
-      'Longterm': { target: 0.20, stoploss: 0.10 }
+      'INTRADAY': { target: 0.02, stoploss: 0.01 },
+      'SHORTTERM': { target: 0.05, stoploss: 0.03 },
+      'POSITIONAL': { target: 0.10, stoploss: 0.05 },
+      'LONGTERM': { target: 0.20, stoploss: 0.10 }
     };
     
-    const mult = multipliers[timeframe] || multipliers['Intraday'];
+    const mult = multipliers[timeframe] || multipliers['INTRADAY'];
     
     return {
       target1: (basePrice * (1 + mult.target)).toFixed(2),
@@ -206,10 +207,10 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Intraday">Intraday</SelectItem>
-                      <SelectItem value="Shortterm">Shortterm</SelectItem>
-                      <SelectItem value="Positional">Positional</SelectItem>
-                      <SelectItem value="Longterm">Longterm</SelectItem>
+                      <SelectItem value="INTRADAY">Intraday</SelectItem>
+                      <SelectItem value="SHORTTERM">Shortterm</SelectItem>
+                      <SelectItem value="POSITIONAL">Positional</SelectItem>
+                      <SelectItem value="LONGTERM">Longterm</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -220,11 +221,11 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <span className="text-green-600 font-medium">T1:</span>
-                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).target1}</span>
+                      <span className="font-mono">₹{targets.target1}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-red-600 font-medium">SL1:</span>
-                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).stoploss1}</span>
+                      <span className="font-mono">₹{targets.stoploss1}</span>
                     </div>
                   </div>
                   
@@ -232,11 +233,11 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <span className="text-green-600 font-medium">T2:</span>
-                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).target2}</span>
+                      <span className="font-mono">₹{targets.target2}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-red-600 font-medium">SL2:</span>
-                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).stoploss2}</span>
+                      <span className="font-mono">₹{targets.stoploss2}</span>
                     </div>
                   </div>
                   
@@ -244,11 +245,11 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                   <div className="space-y-1">
                     <div className="flex items-center gap-1">
                       <span className="text-green-600 font-medium">T3:</span>
-                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).target3}</span>
+                      <span className="font-mono">₹{targets.target3}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="text-red-600 font-medium">Hard SL:</span>
-                      <span className="font-mono">₹{getTargetsAndStoplosses(selectedTimeframe).hardStoploss}</span>
+                      <span className="font-mono">₹{targets.hardStoploss}</span>
                     </div>
                   </div>
                 </div>
