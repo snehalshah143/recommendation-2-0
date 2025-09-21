@@ -63,6 +63,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const [defaultBaskets, setDefaultBaskets] = useState(['ALL']);
   const [searchQuery, setSearchQuery] = useState('');
   const [backendStatus, setBackendStatus] = useState('Unknown');
+  const [isFiltersVisible, setIsFiltersVisible] = useState(true);
 
   // Check backend status
   const checkBackendStatus = useCallback(async () => {
@@ -638,42 +639,27 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       <DashboardHeader apiBaseUrl={apiBaseUrl} onSettingsClick={() => setShowSettings(true)} />
       <div className="p-2">
       <div className="max-w-7xl mx-auto space-y-3">
-        {/* Status Indicator */}
-        <div className="flex justify-between items-center text-sm text-gray-500">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className={cn(
-                "w-2 h-2 rounded-full",
-                apiBaseUrl ? (isConnected ? "bg-green-500" : "bg-red-500") : "bg-blue-500"
-              )}></div>
-              <span>
-                {apiBaseUrl ? (isConnected ? 'SSE Connected' : 'SSE Disconnected') : 'No Backend - Connect to see data'}
-              </span>
-            </div>
-            {apiBaseUrl && (
+        {/* Status and Filters Panel - Hideable */}
+        {isFiltersVisible ? (
+          <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-lg hover:shadow-xl transition-shadow duration-200">
+            <div className="flex gap-2 items-center">
+              {/* Toggle Icon - At Start */}
               <button
-                onClick={checkBackendStatus}
-                className={cn(
-                  "px-2 py-1 text-xs rounded transition-colors",
-                  backendStatus === 'Active' 
-                    ? "bg-green-100 text-green-700 hover:bg-green-200" 
-                    : backendStatus === 'Inactive'
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                )}
+                onClick={() => setIsFiltersVisible(!isFiltersVisible)}
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Hide panel"
               >
-                Backend: {backendStatus}
+                <svg 
+                  className="w-4 h-4 transition-transform duration-200 rotate-180" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
               </button>
-            )}
-          </div>
-          {lastUpdate && (
-            <span>Last update: {lastUpdate.toLocaleTimeString()}</span>
-          )}
-        </div>
-
-
-        {/* First Row - All Main Filters */}
-        <div className="flex gap-2 items-center">
+              
+              {/* Filter Dropdowns */}
           {/* Stock Baskets Dropdown */}
           <div className="relative dropdown-container">
             <button
@@ -841,10 +827,100 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               </div>
             )}
           </div>
-        </div>
+                
+                
+                {/* Status Indicators - Extreme Right */}
+                <div className="flex items-center gap-4 text-sm text-gray-500 ml-auto">
+                  <div className="flex items-center gap-2">
+                    <div className={cn(
+                      "w-2 h-2 rounded-full",
+                      apiBaseUrl ? (isConnected ? "bg-green-500" : "bg-red-500") : "bg-blue-500"
+                    )}></div>
+                    <span>
+                      {apiBaseUrl ? (isConnected ? 'SSE Connected' : 'SSE Disconnected') : 'No Backend - Connect to see data'}
+                    </span>
+                  </div>
+                  {apiBaseUrl && (
+                    <button
+                      onClick={checkBackendStatus}
+                      className={cn(
+                        "px-2 py-1 text-xs rounded transition-colors",
+                        backendStatus === 'Active' 
+                          ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                          : backendStatus === 'Inactive'
+                          ? "bg-red-100 text-red-700 hover:bg-red-200"
+                          : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                      )}
+                    >
+                      Backend: {backendStatus}
+                    </button>
+                  )}
+                  {lastUpdate && (
+                    <span className="text-xs text-gray-400">Last update: {lastUpdate.toLocaleTimeString()}</span>
+                  )}
+                </div>
+            </div>
+          </div>
+        ) : (
+          /* Collapsed State - Just Toggle Icon */
+          <div className="flex justify-start">
+            <button
+              onClick={() => setIsFiltersVisible(!isFiltersVisible)}
+              className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Show panel"
+            >
+              <svg 
+                className="w-4 h-4 transition-transform duration-200" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          </div>
+        )}
 
-        {/* Second Row - Active Tags */}
-        <div className="flex items-center gap-2">
+        {/* Second Row - Search Bar and Active Tags */}
+        <div className="flex items-center gap-4">
+          {/* Search Bar */}
+          <div className="bg-white rounded-lg border border-gray-200 p-1.5 shadow-sm w-1/4">
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-1.5 flex items-center pointer-events-none">
+                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search stocks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+              </div>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <div className="mt-1 text-xs text-gray-600">
+                {filteredStocksData.BUY.length + filteredStocksData.SELL.length + filteredStocksData.SIDEWAYS.length} stocks matching "{searchQuery}"
+                {selectedBaskets.length > 0 && !selectedBaskets.includes('ALL') && (
+                  <span className="ml-2 text-gray-500">
+                    (filtered by {selectedBaskets.join(', ')})
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          
           <span className="text-sm text-gray-600 font-medium">Active:</span>
           <div className="flex flex-wrap gap-1">
             {/* Selected Baskets */}
@@ -893,113 +969,76 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               {selectedTimeFilter === 'TODAY' ? 'Today' : selectedTimeFilter === 'YESTERDAY' ? 'Yesterday' : selectedTimeFilter === 'THIS_WEEK' ? 'This Week' : selectedTimeFilter === 'ALL' ? 'All' : selectedTimeFilter}
             </span>
           </div>
-        </div>
+          </div>
 
-        {/* Custom Basket Panel - Inline with filters */}
-        {selectedBaskets.includes('CUSTOM') && (
-          <div className="flex-1 bg-blue-50 rounded-lg border border-blue-200">
-            {/* Header with minimize/expand */}
-            <div 
-              className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 transition-colors"
-              onClick={() => setIsCustomBasketMinimized(!isCustomBasketMinimized)}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-blue-800">
-                  Custom Basket ({customBasketStocks.length}/20 stocks)
-                </span>
-                <button
-                  onClick={handleSearchButtonClick}
-                  disabled={customBasketStocks.length >= 20}
-                  className={`px-2 py-1 text-xs rounded ${
-                    customBasketStocks.length >= 20
+          {/* Custom Basket Panel - Inline with filters */}
+          {selectedBaskets.includes('CUSTOM') && (
+            <div className="flex-1 bg-blue-50 rounded-lg border border-blue-200">
+              {/* Header with minimize/expand */}
+              <div 
+                className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 transition-colors"
+                onClick={() => setIsCustomBasketMinimized(!isCustomBasketMinimized)}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-blue-800">
+                    Custom Basket ({customBasketStocks.length}/20 stocks)
+                  </span>
+                  <button
+                    onClick={handleSearchButtonClick}
+                    disabled={customBasketStocks.length >= 20}
+                    className={`px-2 py-1 text-xs rounded ${
+                      customBasketStocks.length >= 20
                       ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
-                      : 'bg-green-600 text-white hover:bg-green-700'
-                  }`}
-                >
-                  {customBasketStocks.length >= 20 ? 'Limit Reached' : 'Search & Add Stocks'}
-                </button>
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`}
+                  >
+                    {customBasketStocks.length >= 20 ? 'Limit Reached' : 'Search & Add Stocks'}
+                  </button>
               </div>
-              <div className="text-blue-600">
-                {isCustomBasketMinimized ? '▼' : '▲'}
-              </div>
-            </div>
-            {/* Expandable Content */}
-            {!isCustomBasketMinimized && (
-              <div className="px-3 pb-3 space-y-3">
-                {/* Stock Search */}
-                {showStockSearch && (
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      placeholder="Search stocks (e.g., RELIANCE, TCS, HDFC)"
-                      value={stockSearchQuery}
-                      onChange={handleStockSearch}
-                      onBlur={handleSearchInputBlur}
-                      className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      autoFocus
-                    />
-                    {searchResults.length > 0 && (
-                      <div className="max-h-32 overflow-y-auto border rounded-lg bg-white">
-                        {searchResults.map((stock) => (
-                          <button
-                            key={stock}
-                            onClick={() => addStockToBasket(stock)}
-                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            {stock}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                  <div className="text-blue-600">
+                    {isCustomBasketMinimized ? '▼' : '▲'}
                   </div>
-                )}
+          </div>
+              {/* Expandable Content */}
+              {!isCustomBasketMinimized && (
+                <div className="px-3 pb-3 space-y-3">
+                  {/* Stock Search */}
+                  {showStockSearch && (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        placeholder="Search stocks (e.g., RELIANCE, TCS, HDFC)"
+                        value={stockSearchQuery}
+                        onChange={handleStockSearch}
+                        onBlur={handleSearchInputBlur}
+                        className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        autoFocus
+                      />
+                      {searchResults.length > 0 && (
+                        <div className="max-h-32 overflow-y-auto border rounded-lg bg-white">
+                          {searchResults.map((stock) => (
+                            <button
+                              key={stock}
+                              onClick={() => addStockToBasket(stock)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            >
+                              {stock}
+                            </button>
+                          ))}
+          </div>
+                      )}
+                    </div>
+                  )}
                 {/* Custom Basket Stocks List */}
                 <SimpleCustomBasket 
                   customBasketStocks={customBasketStocks} 
                   removeStockFromBasket={removeStockFromBasket} 
                 />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Search Bar - Compact 25% width */}
-        <div className="bg-white rounded-lg border border-gray-200 p-1.5 shadow-sm w-1/4">
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-1.5 flex items-center pointer-events-none">
-                <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-              <input
-                type="text"
-                placeholder="Search stocks..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-              />
-            </div>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-              >
-                ×
-              </button>
-            )}
-          </div>
-          {searchQuery && (
-            <div className="mt-1 text-xs text-gray-600">
-              {filteredStocksData.BUY.length + filteredStocksData.SELL.length + filteredStocksData.SIDEWAYS.length} stocks matching "{searchQuery}"
-              {selectedBaskets.length > 0 && !selectedBaskets.includes('ALL') && (
-                <span className="ml-2 text-gray-500">
-                  (filtered by {selectedBaskets.join(', ')})
-                </span>
+                </div>
               )}
             </div>
           )}
-        </div>
+
 
         {/* Main Content Layout */}
         <div className="relative">
