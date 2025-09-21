@@ -11,24 +11,61 @@ const Nifty50Display = ({ apiBaseUrl = '' }) => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Mock Nifty 50 data - in real implementation, this would come from API
+  // Fetch real Nifty 50 data from API
   useEffect(() => {
     const fetchNiftyData = async () => {
       setLoading(true);
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!apiBaseUrl) {
+        // Fallback data when no backend
+        const mockData = {
+          price: 24567.35,
+          change: Math.random() > 0.5 ? 125.50 : -87.25,
+          changePercent: Math.random() > 0.5 ? 0.51 : -0.35,
+          isPositive: Math.random() > 0.5
+        };
+        setNiftyData(mockData);
+        setLoading(false);
+        return;
+      }
       
-      // Mock data - replace with actual API call
-      const mockData = {
-        price: 24567.35,
-        change: Math.random() > 0.5 ? 125.50 : -87.25,
-        changePercent: Math.random() > 0.5 ? 0.51 : -0.35,
-        isPositive: Math.random() > 0.5
-      };
-      
-      setNiftyData(mockData);
-      setLoading(false);
+      try {
+        const response = await fetch(`${apiBaseUrl}/api/indices`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Use actual change values from API
+        const change = data.niftyChange || 0;
+        const changePercent = data.niftyChangePercent || 0;
+        
+        setNiftyData({
+          price: data.nifty || 24567.35,
+          change: change,
+          changePercent: changePercent,
+          isPositive: change >= 0
+        });
+      } catch (err) {
+        console.error('Failed to fetch Nifty data:', err);
+        // Use fallback data on error
+        const fallbackData = {
+          price: 24567.35,
+          change: 0,
+          changePercent: 0,
+          isPositive: true
+        };
+        setNiftyData(fallbackData);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchNiftyData();

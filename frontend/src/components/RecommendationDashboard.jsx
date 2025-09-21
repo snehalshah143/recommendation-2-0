@@ -432,7 +432,6 @@ function getMockStocks() {
       { symbol: "MARUTI", price: 950.3, gain: -1.2 },
     ],
     SIDEWAYS: [
-      { symbol: "NIFTY", price: 21500, gain: 0.05 },
       { symbol: "SBJ", price: 285, gain: 0.01 },
     ],
   };

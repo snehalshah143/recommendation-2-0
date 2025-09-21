@@ -13,6 +13,7 @@ public class StockAlert {
   String price;
   Date alertDate;
   String scanName;
+  Integer daysSince;
 
   BuySell buySell;
 
@@ -38,6 +39,7 @@ public class StockAlert {
 
   public void setAlertDate(Date alertDate) {
     this.alertDate = alertDate;
+    this.daysSince = calculateDaysSince(alertDate);
   }
 
   public String getScanName() {
@@ -56,9 +58,31 @@ public class StockAlert {
     this.buySell = buySell;
   }
 
+  public Integer getDaysSince() {
+    return daysSince;
+  }
+
+  public void setDaysSince(Integer daysSince) {
+    this.daysSince = daysSince;
+  }
+
+  /**
+   * Calculate days since the alert date
+   */
+  private Integer calculateDaysSince(Date alertDate) {
+    if (alertDate == null) {
+      return 0;
+    }
+    long diffInMillies = Math.abs(new Date().getTime() - alertDate.getTime());
+    long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+    return (int) diffInDays;
+  }
+
   @Override
   public String toString() {
     String dateFormat = formatter.format(alertDate);
+    String daysSinceText = daysSince != null ? 
+        (daysSince == 0 ? " (today)" : " (since " + daysSince + " days)") : "";
     return ""
         + buySell
         + " :: "
@@ -67,6 +91,7 @@ public class StockAlert {
         + price
         + " ON "
         + dateFormat
+        + daysSinceText
         + " :: FOR :: "
         + scanName
         + "";

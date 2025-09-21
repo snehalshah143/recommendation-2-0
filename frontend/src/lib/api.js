@@ -265,6 +265,36 @@ export const getActiveTargetStoplossByTimeframe = async ({
 };
 
 /**
+ * Fetches market indices data (Nifty, Bank Nifty, market status)
+ * @param {object} params - Query parameters
+ * @param {string} params.token - Optional authorization token
+ * @param {string} params.baseUrl - Optional base URL override
+ * @returns {Promise<object>} Market indices object
+ * @throws {Error} If request fails
+ * 
+ * @example
+ * // Get market indices
+ * const indices = await getMarketIndices();
+ * 
+ * // Get market indices with authentication
+ * const indices = await getMarketIndices({ 
+ *   token: 'your-auth-token'
+ * });
+ */
+export const getMarketIndices = async ({ 
+  token, 
+  baseUrl = API_BASE_URL 
+} = {}) => {
+  if (!baseUrl) {
+    throw new Error('API base URL is required');
+  }
+
+  const url = `${baseUrl}/api/indices`;
+  
+  return makeRequest(url, { token });
+};
+
+/**
  * Utility function to check if API is available
  * @param {string} baseUrl - Base URL to check
  * @returns {Promise<boolean>} True if API is reachable
@@ -295,6 +325,7 @@ export default {
   getStockFundamentals,
   getActiveTargetStoploss,
   getActiveTargetStoplossByTimeframe,
+  getMarketIndices,
   checkApiHealth,
 };
 

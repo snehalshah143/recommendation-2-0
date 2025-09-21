@@ -4,9 +4,11 @@ import { cn } from '../lib/utils';
 import DashboardHeader from './DashboardHeader';
 import StockDetailModal from './StockDetailModal';
 import SimpleCustomBasket from './SimpleCustomBasket';
+import { isStockInBasket, getBasketCount } from '../config/stockBaskets';
 
 // Basket options
 const BASKETS = [
+  'ALL',
   'NIFTY50',
   'BANKNIFTY', 
   'NIFTY200',
@@ -26,19 +28,19 @@ const TIMEFRAMES = [
 ];
 
 const TIME_FILTER_OPTIONS = [
-  'Today',
-  'Yesterday', 
-  'This Week',
-  'All'
+  'TODAY',
+  'YESTERDAY', 
+  'THIS_WEEK',
+  'ALL'
 ];
 
 // No mock data - only real alerts from backend
 
 export default function RecommendationDashboard({ apiBaseUrl = '' }) {
-  const [selectedBaskets, setSelectedBaskets] = useState(['NIFTY50']);
+  const [selectedBaskets, setSelectedBaskets] = useState(['ALL']);
   const [selectedTimeframes, setSelectedTimeframes] = useState(['INTRADAY']);
   const [selectedPanels, setSelectedPanels] = useState(['BUY', 'SELL', 'SIDEWAYS']);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('Today');
+  const [selectedTimeFilter, setSelectedTimeFilter] = useState('TODAY');
   const [basketDropdownOpen, setBasketDropdownOpen] = useState(false);
   const [timeframeDropdownOpen, setTimeframeDropdownOpen] = useState(false);
   const [panelDropdownOpen, setPanelDropdownOpen] = useState(false);
@@ -57,6 +59,9 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const [stockSearchQuery, setStockSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isCustomBasketMinimized, setIsCustomBasketMinimized] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [defaultBaskets, setDefaultBaskets] = useState(['ALL']);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Toggle functions for multi-select
   const toggleBasket = (basket) => {
@@ -145,6 +150,27 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   const removeStockFromBasket = (stock) => {
     setCustomBasketStocks(customBasketStocks.filter(s => s !== stock));
+  };
+
+  // Settings functions
+  const toggleDefaultBasket = (basket) => {
+    setDefaultBaskets(prev => 
+      prev.includes(basket) 
+        ? prev.filter(b => b !== basket)
+        : [...prev, basket]
+    );
+  };
+
+  const saveDefaultBaskets = () => {
+    setSelectedBaskets([...defaultBaskets]);
+    localStorage.setItem('defaultBaskets', JSON.stringify(defaultBaskets));
+    setShowSettings(false);
+  };
+
+  const resetToDefaults = () => {
+    setDefaultBaskets(['ALL']);
+    setSelectedBaskets(['ALL']);
+    localStorage.removeItem('defaultBaskets');
   };
 
   // Helper function to extract timeframe from scan name
@@ -264,7 +290,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     }
 
     try {
-      const response = await fetch(`${apiBaseUrl}/alerts?limit=50`);
+      const response = await fetch(`${apiBaseUrl}/api/alerts?limit=50`);
       if (response.ok) {
         const data = await response.json();
         console.log('🔗 Raw backend alerts data:', data);
@@ -319,7 +345,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       return;
     }
 
-    const sseUrl = `${apiBaseUrl}/alerts/stream`;
+    const sseUrl = `${apiBaseUrl}/api/alerts/stream`;
     console.log('🔗 Attempting to connect to SSE:', sseUrl);
     console.log('🔗 Full URL details:', {
       protocol: window.location.protocol,
@@ -411,7 +437,30 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   // Load initial alerts
   useEffect(() => {
     fetchAlerts();
-  }, [fetchAlerts]);
+  }, [apiBaseUrl]);
+
+  // Refetch alerts when filters change
+  useEffect(() => {
+    if (apiBaseUrl) {
+      fetchAlerts();
+    }
+  }, [selectedPanels, selectedTimeframes]);
+
+  // Load saved default baskets on mount
+  useEffect(() => {
+    const savedDefaults = localStorage.getItem('defaultBaskets');
+    if (savedDefaults) {
+      try {
+        const parsed = JSON.parse(savedDefaults);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setDefaultBaskets(parsed);
+          setSelectedBaskets(parsed);
+        }
+      } catch (e) {
+        console.error('Error loading saved default baskets:', e);
+      }
+    }
+  }, []);
 
   // Filter alerts by time period
   const filterAlertsByTime = useCallback((alerts) => {
@@ -426,13 +475,13 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       const alertDate = new Date(alert.timestamp);
       
       switch (selectedTimeFilter) {
-        case 'Today':
+        case 'TODAY':
           return alertDate >= today;
-        case 'Yesterday':
+        case 'YESTERDAY':
           return alertDate >= yesterday && alertDate < today;
-        case 'This Week':
+        case 'THIS_WEEK':
           return alertDate >= weekStart;
-        case 'All':
+        case 'ALL':
         default:
           return true;
       }
@@ -447,24 +496,29 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     // Filter alerts by time first
       let filteredAlerts = filterAlertsByTime(alerts);
     
-    // Apply custom basket filter if CUSTOM is selected
-    if (selectedBaskets.includes('CUSTOM') && customBasketStocks && customBasketStocks.length > 0) {
-      const customSymbols = customBasketStocks; // customBasketStocks is already an array of strings
+    // Apply basket filtering
+    if (selectedBaskets.length > 0 && !selectedBaskets.includes('ALL')) {
       const beforeCount = filteredAlerts.length;
       
-      console.log('🔍 DEBUG: Custom basket filtering:');
+      console.log('🔍 DEBUG: Basket filtering:');
       console.log('  - Selected baskets:', selectedBaskets);
-      console.log('  - Custom basket stocks:', customSymbols);
       console.log('  - Alerts before filtering:', filteredAlerts.map(a => `${a.symbol}(${a.action})`));
       
       filteredAlerts = filteredAlerts.filter(alert => {
-        const isIncluded = customSymbols.includes(alert.symbol);
-        console.log(`  - ${alert.symbol}: ${isIncluded ? 'INCLUDED' : 'FILTERED OUT'}`);
-        return isIncluded;
+        // Check if stock belongs to any of the selected baskets
+        const belongsToAnyBasket = selectedBaskets.some(basket => {
+          if (basket === 'CUSTOM') {
+            return customBasketStocks && customBasketStocks.includes(alert.symbol);
+          }
+          return isStockInBasket(alert.symbol, basket);
+        });
+        
+        console.log(`  - ${alert.symbol}: ${belongsToAnyBasket ? 'INCLUDED' : 'FILTERED OUT'}`);
+        return belongsToAnyBasket;
       });
       
-      console.log(`🔍 Custom basket filter: ${beforeCount} alerts → ${filteredAlerts.length} alerts`);
-      console.log('🔍 Filtered alerts by custom basket:', filteredAlerts.map(a => `${a.symbol}(${a.action})`));
+      console.log(`🔍 Basket filter: ${beforeCount} alerts → ${filteredAlerts.length} alerts`);
+      console.log('🔍 Filtered alerts by basket:', filteredAlerts.map(a => `${a.symbol}(${a.action})`));
     }
     
     console.log('🔍 Filtered alerts by time:', filteredAlerts);
@@ -532,9 +586,29 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   const stocksData = stocksFromAlerts();
 
+  // Filter stocks based on search query
+  const filterStocksBySearch = (stocks) => {
+    if (!searchQuery.trim()) {
+      return stocks;
+    }
+    
+    const query = searchQuery.toLowerCase().trim();
+    return stocks.filter(stock => 
+      stock.symbol.toLowerCase().includes(query) ||
+      stock.symbol.toLowerCase().startsWith(query)
+    );
+  };
+
+  // Apply search filter to all stock categories
+  const filteredStocksData = {
+    BUY: filterStocksBySearch(stocksData.BUY),
+    SELL: filterStocksBySearch(stocksData.SELL),
+    SIDEWAYS: filterStocksBySearch(stocksData.SIDEWAYS)
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardHeader apiBaseUrl={apiBaseUrl} />
+      <DashboardHeader apiBaseUrl={apiBaseUrl} onSettingsClick={() => setShowSettings(true)} />
       <div className="p-2">
       <div className="max-w-7xl mx-auto space-y-3">
         {/* Status Indicator */}
@@ -553,7 +627,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               <button
                 onClick={() => {
                   console.log('Testing backend connection...');
-                  fetch(`${apiBaseUrl}/alerts?limit=1`)
+                  fetch(`${apiBaseUrl}/api/alerts?limit=1`)
                     .then(response => {
                       console.log('Backend response:', response.status, response.ok);
                       if (response.ok) {
@@ -576,6 +650,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
             <span>Last update: {lastUpdate.toLocaleTimeString()}</span>
           )}
         </div>
+
 
         {/* First Row - Stock Baskets, Buy/Sell, and Selected Filters Display */}
         <div className="flex gap-2 items-center">
@@ -614,7 +689,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                         </svg>
                       )}
                     </div>
-                    <span className="text-gray-700">{basket}</span>
+                    <span className="text-gray-700">{basket === 'ALL' ? 'All' : basket === 'NIFTY50' ? 'Nifty50' : basket === 'BANKNIFTY' ? 'BankNifty' : basket === 'NIFTY200' ? 'Nifty200' : basket === 'NIFTY500' ? 'Nifty500' : basket === 'MULTICAP' ? 'MultiCap' : basket === 'MULTICAPPLUS' ? 'MultiCapPlus' : basket === 'FNO' ? 'Fno' : basket === 'CUSTOM' ? 'Custom' : basket}</span>
                   </button>
                 ))}
               </div>
@@ -656,12 +731,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                         </svg>
                       )}
                     </div>
-                    <span className={cn(
-                      "font-medium",
-                      panel === 'BUY' ? 'text-green-600' : 
-                      panel === 'SELL' ? 'text-red-600' : 
-                      'text-yellow-600'
-                    )}>{panel}</span>
+                    <span className="text-gray-700">{panel === 'BUY' ? 'Buy' : panel === 'SELL' ? 'Sell' : panel === 'SIDEWAYS' ? 'Sideways' : panel}</span>
                   </button>
                 ))}
               </div>
@@ -678,9 +748,12 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   key={basket}
                   className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
                 >
-                  {basket}
+                  {basket === 'ALL' ? 'All' : basket === 'NIFTY50' ? 'Nifty50' : basket === 'BANKNIFTY' ? 'BankNifty' : basket === 'NIFTY200' ? 'Nifty200' : basket === 'NIFTY500' ? 'Nifty500' : basket === 'MULTICAP' ? 'MultiCap' : basket === 'MULTICAPPLUS' ? 'MultiCapPlus' : basket === 'FNO' ? 'Fno' : basket === 'CUSTOM' ? 'Custom' : basket}
                   {basket === 'CUSTOM' && customBasketStocks.length > 0 && (
                     <span className="text-blue-600">({customBasketStocks.length})</span>
+                  )}
+                  {basket !== 'CUSTOM' && (
+                    <span className="text-blue-600">({getBasketCount(basket)})</span>
                   )}
                 </span>
               ))}
@@ -692,7 +765,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   key={timeframe}
                   className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full"
                 >
-                  {timeframe}
+                  {timeframe === 'INTRADAY' ? 'Intraday' : timeframe === 'SHORTTERM' ? 'Shortterm' : timeframe === 'POSITIONAL' ? 'Positional' : timeframe === 'LONGTERM' ? 'Longterm' : timeframe}
                 </span>
               ))}
               
@@ -707,13 +780,13 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                     'bg-yellow-100 text-yellow-800'
                   )}
                 >
-                  {panel}
+                  {panel === 'BUY' ? 'Buy' : panel === 'SELL' ? 'Sell' : panel === 'SIDEWAYS' ? 'Sideways' : panel}
                 </span>
               ))}
               
               {/* Time Filter */}
               <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                {selectedTimeFilter}
+                {selectedTimeFilter === 'TODAY' ? 'Today' : selectedTimeFilter === 'YESTERDAY' ? 'Yesterday' : selectedTimeFilter === 'THIS_WEEK' ? 'This Week' : selectedTimeFilter === 'ALL' ? 'All' : selectedTimeFilter}
               </span>
             </div>
           </div>
@@ -756,7 +829,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                         </svg>
                       )}
                     </div>
-                    <span className="text-gray-700">{timeframe}</span>
+                    <span className="text-gray-700">{timeframe === 'INTRADAY' ? 'Intraday' : timeframe === 'SHORTTERM' ? 'Shortterm' : timeframe === 'POSITIONAL' ? 'Positional' : timeframe === 'LONGTERM' ? 'Longterm' : timeframe}</span>
                   </button>
                 ))}
               </div>
@@ -771,7 +844,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <span className="text-sm font-medium">
-                Alerts For {selectedTimeFilter}
+                Alerts For {selectedTimeFilter === 'TODAY' ? 'Today' : selectedTimeFilter === 'YESTERDAY' ? 'Yesterday' : selectedTimeFilter === 'THIS_WEEK' ? 'This Week' : selectedTimeFilter === 'ALL' ? 'All' : selectedTimeFilter}
               </span>
               <svg className={`w-4 h-4 transition-transform ${timeFilterDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -798,7 +871,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                         </svg>
                       )}
                     </div>
-                    <span className="text-gray-700">{filter}</span>
+                    <span className="text-gray-700">{filter === 'TODAY' ? 'Today' : filter === 'YESTERDAY' ? 'Yesterday' : filter === 'THIS_WEEK' ? 'This Week' : filter === 'ALL' ? 'All' : filter}</span>
                   </button>
                 ))}
               </div>
@@ -898,6 +971,44 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           )}
         </div>
 
+        {/* Search Bar */}
+        <div className="bg-white rounded-lg border border-gray-200 p-2 shadow-sm">
+          <div className="flex items-center gap-2">
+            <div className="flex-1 relative">
+              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search stocks (e.g., RELIANCE, TCS)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-7 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              />
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {searchQuery && (
+            <div className="mt-1 text-xs text-gray-600">
+              {filteredStocksData.BUY.length + filteredStocksData.SELL.length + filteredStocksData.SIDEWAYS.length} stocks matching "{searchQuery}"
+              {selectedBaskets.length > 0 && !selectedBaskets.includes('ALL') && (
+                <span className="ml-2 text-gray-500">
+                  (filtered by {selectedBaskets.join(', ')})
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
         {/* Main Content Layout */}
         <div className="relative">
           {/* Stock Panels Container */}
@@ -909,7 +1020,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               <CardTitle className="text-lg text-green-700 flex justify-between items-center">
                 BUY
                 <span className="text-sm font-normal text-gray-500">
-                  {stocksData.BUY.length}
+                  {filteredStocksData.BUY.length}
                 </span>
               </CardTitle>
             </CardHeader>
@@ -919,13 +1030,13 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
                   </div>
-                ) : stocksData.BUY.length === 0 ? (
+                ) : filteredStocksData.BUY.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
-                    No BUY recommendations
+                    {searchQuery ? `No BUY stocks matching "${searchQuery}"` : 'No BUY recommendations'}
                   </div>
                 ) : (
                   <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                    {stocksData.BUY.map((stock) => (
+                    {filteredStocksData.BUY.map((stock) => (
                       <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
                     ))}
                   </div>
@@ -942,7 +1053,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               <CardTitle className="text-lg text-red-700 flex justify-between items-center">
                 SELL
                 <span className="text-sm font-normal text-gray-500">
-                  {stocksData.SELL.length}
+                  {filteredStocksData.SELL.length}
                 </span>
               </CardTitle>
             </CardHeader>
@@ -952,13 +1063,13 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
                   </div>
-                ) : stocksData.SELL.length === 0 ? (
+                ) : filteredStocksData.SELL.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
-                    No SELL recommendations
+                    {searchQuery ? `No SELL stocks matching "${searchQuery}"` : 'No SELL recommendations'}
                   </div>
                 ) : (
                   <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                    {stocksData.SELL.map((stock) => (
+                    {filteredStocksData.SELL.map((stock) => (
                       <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
                     ))}
                   </div>
@@ -975,7 +1086,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               <CardTitle className="text-lg text-yellow-700 flex justify-between items-center">
                 SIDEWAYS
                 <span className="text-sm font-normal text-gray-500">
-                  {stocksData.SIDEWAYS.length}
+                  {filteredStocksData.SIDEWAYS.length}
                 </span>
               </CardTitle>
             </CardHeader>
@@ -985,13 +1096,13 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
                   </div>
-                ) : stocksData.SIDEWAYS.length === 0 ? (
+                ) : filteredStocksData.SIDEWAYS.length === 0 ? (
                   <div className="text-center text-gray-500 py-8">
-                    No SIDEWAYS recommendations
+                    {searchQuery ? `No SIDEWAYS stocks matching "${searchQuery}"` : 'No SIDEWAYS recommendations'}
                   </div>
                 ) : (
                   <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                    {stocksData.SIDEWAYS.map((stock) => (
+                    {filteredStocksData.SIDEWAYS.map((stock) => (
                       <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
                     ))}
                   </div>
@@ -1006,7 +1117,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           <Card className="h-[500px] absolute top-0 right-0 w-2/5">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-blue-700 flex justify-between items-center">
-                Alerts
+                ALERTS
                 <span className="text-xs text-gray-500 font-normal">Latest on top</span>
               </CardTitle>
             </CardHeader>
@@ -1016,7 +1127,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   const filteredAlerts = filterAlertsByTime(alerts);
                   return filteredAlerts.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">
-                      No alerts available for {selectedTimeFilter.toLowerCase()}
+                      No alerts available for {selectedTimeFilter === 'TODAY' ? 'today' : selectedTimeFilter === 'YESTERDAY' ? 'yesterday' : selectedTimeFilter === 'THIS_WEEK' ? 'this week' : selectedTimeFilter === 'ALL' ? 'all' : selectedTimeFilter.toLowerCase()}
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1042,6 +1153,65 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         alerts={alerts}
       />
 
+      {/* Settings Modal */}
+      {showSettings && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setShowSettings(false)}
+        >
+          <div 
+            className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Default Basket Settings</h3>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <p className="text-sm text-gray-600 mb-4">
+                Choose which baskets should be selected by default when you load the dashboard.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-2 mb-6">
+                {BASKETS.map((basket) => (
+                  <label key={basket} className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-50 rounded">
+                    <input
+                      type="checkbox"
+                      checked={defaultBaskets.includes(basket)}
+                      onChange={() => toggleDefaultBasket(basket)}
+                      className="rounded border-gray-300"
+                    />
+                    <span className="text-sm">{basket}</span>
+                  </label>
+                ))}
+              </div>
+              
+              <div className="flex gap-2">
+                <button
+                  onClick={saveDefaultBaskets}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Save & Apply
+                </button>
+                <button
+                  onClick={resetToDefaults}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                >
+                  Reset to ALL
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

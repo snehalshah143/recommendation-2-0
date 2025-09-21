@@ -202,15 +202,16 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
               <div className="flex flex-col gap-2">
                 {/* Timeframe Filter */}
                 <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">Trade Duration:</span>
                   <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
-                    <SelectTrigger className="w-32 h-8 text-xs">
+                    <SelectTrigger className="w-32 h-10 text-sm px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-green-500">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="INTRADAY">Intraday</SelectItem>
-                      <SelectItem value="SHORTTERM">Shortterm</SelectItem>
-                      <SelectItem value="POSITIONAL">Positional</SelectItem>
-                      <SelectItem value="LONGTERM">Longterm</SelectItem>
+                    <SelectContent className="w-48 bg-white border border-gray-300 rounded-lg shadow-lg">
+                      <SelectItem value="INTRADAY" className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors text-gray-700">Intraday</SelectItem>
+                      <SelectItem value="SHORTTERM" className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors text-gray-700">Shortterm</SelectItem>
+                      <SelectItem value="POSITIONAL" className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors text-gray-700">Positional</SelectItem>
+                      <SelectItem value="LONGTERM" className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-50 transition-colors text-gray-700">Longterm</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
