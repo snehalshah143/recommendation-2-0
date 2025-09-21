@@ -1171,6 +1171,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         onClose={handleCloseModal}
         stock={selectedStock}
         alerts={alerts}
+        apiBaseUrl={apiBaseUrl}
       />
 
       {/* Settings Modal */}

@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { cn } from '../lib/utils';
 
-const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
+const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = '' }) => {
   const [showOrderForm, setShowOrderForm] = useState(false);
   const [orderForm, setOrderForm] = useState({
     price: '',
@@ -53,13 +53,11 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
     }
   }, [showOrderForm, ltp]);
 
-  // Generate dummy LTP (Last Traded Price)
+  // Set LTP from stock price (no dummy variation)
   useEffect(() => {
     if (stock?.price) {
       const basePrice = parseFloat(stock.price);
-      // Add some random variation to simulate real-time price
-      const variation = (Math.random() - 0.5) * 0.02; // ±1% variation
-      setLtp(basePrice * (1 + variation));
+      setLtp(basePrice);
     }
   }, [stock]);
 
@@ -158,17 +156,8 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
     };
   };
 
-  // Dummy price action alerts
-  const priceActionAlerts = [
-    'Price crossed Day High',
-    'Price crossed Week High',
-    'Volume spike detected',
-    'RSI oversold condition',
-    'MACD bullish crossover',
-    'Support level holding strong',
-    'Resistance breakout imminent',
-    'Moving average golden cross'
-  ];
+  // No dummy data - show NA when no real data available
+  const priceActionAlerts = [];
 
   // Filter alerts for this stock (latest first)
   const stockAlerts = alerts
@@ -261,12 +250,16 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
                     Buy
                   </Button>
                 ) : (
-                  <Button
-                    onClick={() => setShowOrderForm(true)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 text-lg font-bold"
-                  >
-                    Sell
-                  </Button>
+                  <div className="flex flex-col items-center">
+                    <Button
+                      disabled
+                      onClick={() => {}} // Prevent form opening
+                      className="bg-red-600 text-white px-8 py-3 text-lg font-bold cursor-not-allowed"
+                    >
+                      Sell
+                    </Button>
+                    <span className="text-xs text-gray-500 mt-1">Coming Soon</span>
+                  </div>
                 )}
               </div>
 
@@ -332,24 +325,15 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
             {/* Right Side - Trend Analysis */}
             <div className="flex gap-4">
               {[
-                { name: 'Intraday', value: '+2.4%', status: 'bullish' },
-                { name: 'Short Term', value: '+5.8%', status: 'bullish' },
-                { name: 'Positional', value: '+12.3%', status: 'bullish' },
-                { name: 'Long Term', value: '+28.7%', status: 'bullish' }
+                { name: 'Intraday', value: 'NA' },
+                { name: 'Short Term', value: 'NA' },
+                { name: 'Positional', value: 'NA' },
+                { name: 'Long Term', value: 'NA' }
               ].map((trend) => (
                 <div key={trend.name} className="text-center p-2 bg-white rounded border">
                   <div className="text-xs text-gray-600 mb-1">{trend.name}</div>
-                  <div className="flex items-center justify-center gap-1">
-                    <span className={cn(
-                      "text-sm font-semibold",
-                      trend.status === 'bullish' ? "text-green-600" : "text-red-600"
-                    )}>
-                      {trend.value}
-                    </span>
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      trend.status === 'bullish' ? "bg-green-500" : "bg-red-500"
-                    )}></div>
+                  <div className="text-sm font-semibold text-gray-500">
+                    {trend.value}
                   </div>
                 </div>
               ))}
@@ -548,14 +532,20 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
               </CardHeader>
               <CardContent>
                 <div className="max-h-48 overflow-y-auto space-y-1">
-                  {priceActionAlerts.slice(0, 6).map((alert, index) => (
-                    <div
-                      key={index}
-                      className="p-1.5 bg-blue-50 border-l-2 border-blue-500 rounded text-xs"
-                    >
-                      {alert}
+                  {priceActionAlerts.length > 0 ? (
+                    priceActionAlerts.slice(0, 6).map((alert, index) => (
+                      <div
+                        key={index}
+                        className="p-1.5 bg-blue-50 border-l-2 border-blue-500 rounded text-xs"
+                      >
+                        {alert}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-1.5 text-gray-500 text-xs text-center">
+                      NA
                     </div>
-                  ))}
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -567,16 +557,16 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
               </CardHeader>
               <CardContent className="space-y-1">
                 {[
-                  { label: 'P/E Ratio', value: '24.5' },
-                  { label: 'ROE', value: '18.2%' },
-                  { label: 'ROC', value: '15.8%' },
-                  { label: 'Book Value', value: '₹1,250' },
-                  { label: 'Market Cap', value: '₹2.5L Cr' },
-                  { label: 'Sales (Qtr)', value: '₹15,200 Cr' }
+                  { label: 'P/E Ratio', value: 'NA' },
+                  { label: 'ROE', value: 'NA' },
+                  { label: 'ROC', value: 'NA' },
+                  { label: 'Book Value', value: 'NA' },
+                  { label: 'Market Cap', value: 'NA' },
+                  { label: 'Sales (Qtr)', value: 'NA' }
                 ].map((item) => (
                   <div key={item.label} className="flex justify-between items-center py-1 text-xs">
                     <span className="text-gray-600">{item.label}</span>
-                    <span className="font-semibold text-gray-800">{item.value}</span>
+                    <span className="font-semibold text-gray-500">{item.value}</span>
                   </div>
                 ))}
               </CardContent>
@@ -589,30 +579,18 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
               </CardHeader>
               <CardContent className="space-y-1">
                 {[
-                  { label: 'RSI', value: '68.5', status: 'neutral' },
-                  { label: 'MACD', value: 'Bullish', status: 'bullish' },
-                  { label: 'EMA 21', value: '₹2,420', status: 'bullish' },
-                  { label: 'Supertrend', value: 'Bullish', status: 'bullish' },
-                  { label: 'Support', value: '₹2,380', status: 'neutral' },
-                  { label: 'Resistance', value: '₹2,580', status: 'neutral' }
+                  { label: 'RSI', value: 'NA' },
+                  { label: 'MACD', value: 'NA' },
+                  { label: 'EMA 21', value: 'NA' },
+                  { label: 'Supertrend', value: 'NA' },
+                  { label: 'Support', value: 'NA' },
+                  { label: 'Resistance', value: 'NA' }
                 ].map((item) => (
                   <div key={item.label} className="flex justify-between items-center py-1 text-xs">
                     <span className="text-gray-600">{item.label}</span>
-                    <div className="flex items-center gap-1">
-                      <span className={cn(
-                        "font-semibold",
-                        item.status === 'bullish' ? "text-green-600" : 
-                        item.status === 'bearish' ? "text-red-600" : "text-gray-800"
-                      )}>
-                        {item.value}
-                      </span>
-                      {item.status !== 'neutral' && (
-                        <div className={cn(
-                          "w-1 h-1 rounded-full",
-                          item.status === 'bullish' ? "bg-green-500" : "bg-red-500"
-                        )}></div>
-                      )}
-                    </div>
+                    <span className="font-semibold text-gray-500">
+                      {item.value}
+                    </span>
                   </div>
                 ))}
               </CardContent>
