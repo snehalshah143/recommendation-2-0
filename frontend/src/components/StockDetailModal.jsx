@@ -65,6 +65,7 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
   // Get targets and stoplosses based on trade duration and alert price
   const getTargetsAndStoplosses = (timeframe) => {
     const alertPrice = ltp || stock?.price || 0;
+    const isSellAlert = stock?.action === 'SELL';
     
     if (alertPrice === 0) {
       return {
@@ -79,71 +80,142 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
 
     let targets, stoplosses;
     
-    switch (timeframe) {
-      case 'INTRADAY':
-        targets = {
-          t1: alertPrice * 1.015,  // +1.5%
-          t2: alertPrice * 1.025,  // +2.5%
-          t3: alertPrice * 1.04    // +4%
-        };
-        stoplosses = {
-          sl1: alertPrice * 0.99,  // -1%
-          sl2: alertPrice * 0.98,  // -2%
-          hardSL: alertPrice * 0.97 // -3%
-        };
-        break;
-        
-      case 'SHORTTERM':
-        targets = {
-          t1: alertPrice * 1.02,   // +2%
-          t2: alertPrice * 1.05,   // +5%
-          t3: alertPrice * 1.08    // +8%
-        };
-        stoplosses = {
-          sl1: alertPrice * 0.98,  // -2%
-          sl2: alertPrice * 0.96,  // -4%
-          hardSL: alertPrice * 0.95 // -5%
-        };
-        break;
-        
-      case 'POSITIONAL':
-        targets = {
-          t1: alertPrice * 1.05,   // +5%
-          t2: alertPrice * 1.08,   // +8%
-          t3: alertPrice * 1.12    // +12%
-        };
-        stoplosses = {
-          sl1: alertPrice * 0.975, // -2.5%
-          sl2: alertPrice * 0.96,  // -4%
-          hardSL: alertPrice * 0.93 // -7%
-        };
-        break;
-        
-      case 'LONGTERM':
-        targets = {
-          t1: alertPrice * 1.10,   // +10%
-          t2: alertPrice * 1.20,   // +20%
-          t3: alertPrice * 1.30    // +30%
-        };
-        stoplosses = {
-          sl1: alertPrice * 0.95,  // -5%
-          sl2: alertPrice * 0.92,  // -8%
-          hardSL: alertPrice * 0.90 // -10%
-        };
-        break;
-        
-      default:
-        // Default to INTRADAY if unknown timeframe
-        targets = {
-          t1: alertPrice * 1.015,
-          t2: alertPrice * 1.025,
-          t3: alertPrice * 1.04
-        };
-        stoplosses = {
-          sl1: alertPrice * 0.99,
-          sl2: alertPrice * 0.98,
-          hardSL: alertPrice * 0.97
-        };
+    // For SELL alerts, use inverted logic (targets go down, stoplosses go up)
+    if (isSellAlert) {
+      switch (timeframe) {
+        case 'INTRADAY':
+          targets = {
+            t1: alertPrice * 0.985,  // -1.5%
+            t2: alertPrice * 0.975,  // -2.5%
+            t3: alertPrice * 0.96    // -4%
+          };
+          stoplosses = {
+            sl1: alertPrice * 1.01,  // +1%
+            sl2: alertPrice * 1.02,  // +2%
+            hardSL: alertPrice * 1.03 // +3%
+          };
+          break;
+          
+        case 'SHORTTERM':
+          targets = {
+            t1: alertPrice * 0.98,   // -2%
+            t2: alertPrice * 0.95,   // -5%
+            t3: alertPrice * 0.92    // -8%
+          };
+          stoplosses = {
+            sl1: alertPrice * 1.02,  // +2%
+            sl2: alertPrice * 1.04,  // +4%
+            hardSL: alertPrice * 1.05 // +5%
+          };
+          break;
+          
+        case 'POSITIONAL':
+          targets = {
+            t1: alertPrice * 0.95,   // -5%
+            t2: alertPrice * 0.92,   // -8%
+            t3: alertPrice * 0.88    // -12%
+          };
+          stoplosses = {
+            sl1: alertPrice * 1.025, // +2.5%
+            sl2: alertPrice * 1.04,  // +4%
+            hardSL: alertPrice * 1.07 // +7%
+          };
+          break;
+          
+        case 'LONGTERM':
+          targets = {
+            t1: alertPrice * 0.90,   // -10%
+            t2: alertPrice * 0.80,   // -20%
+            t3: alertPrice * 0.70    // -30%
+          };
+          stoplosses = {
+            sl1: alertPrice * 1.05,  // +5%
+            sl2: alertPrice * 1.08,  // +8%
+            hardSL: alertPrice * 1.10 // +10%
+          };
+          break;
+          
+        default:
+          // Default to INTRADAY for SELL alerts
+          targets = {
+            t1: alertPrice * 0.985,  // -1.5%
+            t2: alertPrice * 0.975,  // -2.5%
+            t3: alertPrice * 0.96    // -4%
+          };
+          stoplosses = {
+            sl1: alertPrice * 1.01,  // +1%
+            sl2: alertPrice * 1.02,  // +2%
+            hardSL: alertPrice * 1.03 // +3%
+          };
+      }
+    } else {
+      // For BUY alerts, use original logic (targets go up, stoplosses go down)
+      switch (timeframe) {
+        case 'INTRADAY':
+          targets = {
+            t1: alertPrice * 1.015,  // +1.5%
+            t2: alertPrice * 1.025,  // +2.5%
+            t3: alertPrice * 1.04    // +4%
+          };
+          stoplosses = {
+            sl1: alertPrice * 0.99,  // -1%
+            sl2: alertPrice * 0.98,  // -2%
+            hardSL: alertPrice * 0.97 // -3%
+          };
+          break;
+          
+        case 'SHORTTERM':
+          targets = {
+            t1: alertPrice * 1.02,   // +2%
+            t2: alertPrice * 1.05,   // +5%
+            t3: alertPrice * 1.08    // +8%
+          };
+          stoplosses = {
+            sl1: alertPrice * 0.98,  // -2%
+            sl2: alertPrice * 0.96,  // -4%
+            hardSL: alertPrice * 0.95 // -5%
+          };
+          break;
+          
+        case 'POSITIONAL':
+          targets = {
+            t1: alertPrice * 1.05,   // +5%
+            t2: alertPrice * 1.08,   // +8%
+            t3: alertPrice * 1.12    // +12%
+          };
+          stoplosses = {
+            sl1: alertPrice * 0.975, // -2.5%
+            sl2: alertPrice * 0.96,  // -4%
+            hardSL: alertPrice * 0.93 // -7%
+          };
+          break;
+          
+        case 'LONGTERM':
+          targets = {
+            t1: alertPrice * 1.10,   // +10%
+            t2: alertPrice * 1.20,   // +20%
+            t3: alertPrice * 1.30    // +30%
+          };
+          stoplosses = {
+            sl1: alertPrice * 0.95,  // -5%
+            sl2: alertPrice * 0.92,  // -8%
+            hardSL: alertPrice * 0.90 // -10%
+          };
+          break;
+          
+        default:
+          // Default to INTRADAY for BUY alerts
+          targets = {
+            t1: alertPrice * 1.015,
+            t2: alertPrice * 1.025,
+            t3: alertPrice * 1.04
+          };
+          stoplosses = {
+            sl1: alertPrice * 0.99,
+            sl2: alertPrice * 0.98,
+            hardSL: alertPrice * 0.97
+          };
+      }
     }
     
     return {
@@ -243,12 +315,16 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
                   </p>
                 </div>
                 {stock.action === 'BUY' ? (
-                  <Button
-                    onClick={() => setShowOrderForm(true)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-bold"
-                  >
-                    Buy
-                  </Button>
+                  <div className="flex flex-col items-center">
+                    <Button
+                      disabled
+                      onClick={() => {}} // Prevent form opening
+                      className="bg-green-600 text-white px-8 py-3 text-lg font-bold cursor-not-allowed"
+                    >
+                      Buy
+                    </Button>
+                    <span className="text-xs text-gray-500 mt-1">Coming Soon</span>
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center">
                     <Button
