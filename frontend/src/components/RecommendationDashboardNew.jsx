@@ -672,7 +672,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         </div>
 
 
-        {/* First Row - Stock Baskets, Buy/Sell, and Selected Filters Display */}
+        {/* First Row - All Main Filters */}
         <div className="flex gap-2 items-center">
           {/* Stock Baskets Dropdown */}
           <div className="relative dropdown-container">
@@ -758,62 +758,6 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
             )}
           </div>
 
-          {/* Selected Filters Display */}
-          <div className="flex-1 flex items-center gap-2 ml-4">
-            <span className="text-sm text-gray-600 font-medium">Active:</span>
-            <div className="flex flex-wrap gap-1">
-              {/* Selected Baskets */}
-              {selectedBaskets.map((basket) => (
-                <span
-                  key={basket}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
-                >
-                  {basket === 'ALL' ? 'All' : basket === 'NIFTY50' ? 'Nifty50' : basket === 'BANKNIFTY' ? 'BankNifty' : basket === 'NIFTY200' ? 'Nifty200' : basket === 'NIFTY500' ? 'Nifty500' : basket === 'MULTICAP' ? 'MultiCap' : basket === 'MULTICAPPLUS' ? 'MultiCapPlus' : basket === 'FNO' ? 'Fno' : basket === 'CUSTOM' ? 'Custom' : basket}
-                  {basket === 'CUSTOM' && customBasketStocks.length > 0 && (
-                    <span className="text-blue-600">({customBasketStocks.length})</span>
-                  )}
-                  {basket !== 'CUSTOM' && (
-                    <span className="text-blue-600">({getBasketCount(basket)})</span>
-                  )}
-                </span>
-              ))}
-              
-              
-              {/* Selected Timeframes */}
-              {selectedTimeframes.map((timeframe) => (
-                <span
-                  key={timeframe}
-                  className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full"
-                >
-                  {timeframe === 'INTRADAY' ? 'Intraday' : timeframe === 'SHORTTERM' ? 'Shortterm' : timeframe === 'POSITIONAL' ? 'Positional' : timeframe === 'LONGTERM' ? 'Longterm' : timeframe}
-                </span>
-              ))}
-              
-              {/* Selected Panels */}
-              {selectedPanels.map((panel) => (
-                <span
-                  key={panel}
-                  className={cn(
-                    "inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full",
-                    panel === 'BUY' ? 'bg-green-100 text-green-800' :
-                    panel === 'SELL' ? 'bg-red-100 text-red-800' :
-                    'bg-yellow-100 text-yellow-800'
-                  )}
-                >
-                  {panel === 'BUY' ? 'Buy' : panel === 'SELL' ? 'Sell' : panel === 'SIDEWAYS' ? 'Sideways' : panel}
-                </span>
-              ))}
-              
-              {/* Time Filter */}
-              <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
-                {selectedTimeFilter === 'TODAY' ? 'Today' : selectedTimeFilter === 'YESTERDAY' ? 'Yesterday' : selectedTimeFilter === 'THIS_WEEK' ? 'This Week' : selectedTimeFilter === 'ALL' ? 'All' : selectedTimeFilter}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Second Row - Timeframes and Alerts For */}
-        <div className="flex gap-2">
           {/* Timeframes Dropdown */}
           <div className="relative dropdown-container">
             <button
@@ -897,123 +841,151 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               </div>
             )}
           </div>
+        </div>
 
-          {/* Custom Basket Panel - Inline with filters */}
-          {selectedBaskets.includes('CUSTOM') && (
-            <div className="flex-1 bg-blue-50 rounded-lg border border-blue-200">
-              {/* Header with minimize/expand */}
-              <div 
-                className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 transition-colors"
-                onClick={() => setIsCustomBasketMinimized(!isCustomBasketMinimized)}
+        {/* Second Row - Active Tags */}
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-600 font-medium">Active:</span>
+          <div className="flex flex-wrap gap-1">
+            {/* Selected Baskets */}
+            {selectedBaskets.map((basket) => (
+              <span
+                key={basket}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-blue-800">
-                    Custom Basket ({customBasketStocks.length}/20 stocks)
-                  </span>
-                  <span className="text-xs text-blue-600">
-                    {isCustomBasketMinimized ? 'Click to expand' : 'Click to minimize'}
-                  </span>
-                  {customBasketStocks.length >= 20 && (
-                    <span className="text-xs text-red-600 font-medium">
-                      (Limit reached)
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={handleSearchButtonClick}
-                    disabled={customBasketStocks.length >= 20}
-                    className={`px-2 py-1 text-xs rounded ${
-                      customBasketStocks.length >= 20
-                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                    }`}
-                  >
-                    {customBasketStocks.length >= 20 ? 'Limit Reached' : 'Search & Add Stocks'}
-                  </button>
-                  <div className="text-blue-600">
-                    {isCustomBasketMinimized ? '▼' : '▲'}
-                  </div>
+                {basket === 'ALL' ? 'All' : basket === 'NIFTY50' ? 'Nifty50' : basket === 'BANKNIFTY' ? 'BankNifty' : basket === 'NIFTY200' ? 'Nifty200' : basket === 'NIFTY500' ? 'Nifty500' : basket === 'MULTICAP' ? 'MultiCap' : basket === 'MULTICAPPLUS' ? 'MultiCapPlus' : basket === 'FNO' ? 'Fno' : basket === 'CUSTOM' ? 'Custom' : basket}
+                {basket === 'CUSTOM' && customBasketStocks.length > 0 && (
+                  <span className="text-blue-600">({customBasketStocks.length})</span>
+                )}
+                {basket !== 'CUSTOM' && (
+                  <span className="text-blue-600">({getBasketCount(basket)})</span>
+                )}
+              </span>
+            ))}
+            
+            {/* Selected Timeframes */}
+            {selectedTimeframes.map((timeframe) => (
+              <span
+                key={timeframe}
+                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full"
+              >
+                {timeframe === 'INTRADAY' ? 'Intraday' : timeframe === 'SHORTTERM' ? 'Shortterm' : timeframe === 'POSITIONAL' ? 'Positional' : timeframe === 'LONGTERM' ? 'Longterm' : timeframe}
+              </span>
+            ))}
+            
+            {/* Selected Panels */}
+            {selectedPanels.map((panel) => (
+              <span
+                key={panel}
+                className={cn(
+                  "inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full",
+                  panel === 'BUY' ? 'bg-green-100 text-green-800' :
+                  panel === 'SELL' ? 'bg-red-100 text-red-800' :
+                  'bg-yellow-100 text-yellow-800'
+                )}
+              >
+                {panel === 'BUY' ? 'Buy' : panel === 'SELL' ? 'Sell' : panel === 'SIDEWAYS' ? 'Sideways' : panel}
+              </span>
+            ))}
+            
+            {/* Time Filter */}
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-gray-100 text-gray-800 rounded-full">
+              {selectedTimeFilter === 'TODAY' ? 'Today' : selectedTimeFilter === 'YESTERDAY' ? 'Yesterday' : selectedTimeFilter === 'THIS_WEEK' ? 'This Week' : selectedTimeFilter === 'ALL' ? 'All' : selectedTimeFilter}
+            </span>
           </div>
         </div>
 
-              {/* Expandable Content */}
-              {!isCustomBasketMinimized && (
-                <div className="px-3 pb-3 space-y-3">
-                  {/* Stock Search */}
-                  {showStockSearch && (
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        placeholder="Search stocks (e.g., RELIANCE, TCS, HDFC)"
-                        value={stockSearchQuery}
-                        onChange={handleStockSearch}
-                        onBlur={handleSearchInputBlur}
-                        className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        autoFocus
-                      />
-                      {searchResults.length > 0 && (
-                        <div className="max-h-32 overflow-y-auto border rounded-lg bg-white">
-                          {searchResults.map((stock) => (
-                            <button
-                              key={stock}
-                              onClick={() => addStockToBasket(stock)}
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 border-b last:border-b-0"
-                            >
-                              {stock}
-                            </button>
-                          ))}
-          </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Selected Stocks */}
-                  <div className="flex flex-wrap gap-1">
-                    {customBasketStocks.map((stock, index) => (
-                      <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-white text-blue-700 rounded border border-blue-300"
-                      >
-                        {stock}
-                        <button
-                          onClick={() => removeStockFromBasket(stock)}
-                          className="ml-1 text-red-500 hover:text-red-700"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+        {/* Custom Basket Panel - Inline with filters */}
+        {selectedBaskets.includes('CUSTOM') && (
+          <div className="flex-1 bg-blue-50 rounded-lg border border-blue-200">
+            {/* Header with minimize/expand */}
+            <div 
+              className="flex items-center justify-between p-3 cursor-pointer hover:bg-blue-100 transition-colors"
+              onClick={() => setIsCustomBasketMinimized(!isCustomBasketMinimized)}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-blue-800">
+                  Custom Basket ({customBasketStocks.length}/20 stocks)
+                </span>
+                <button
+                  onClick={handleSearchButtonClick}
+                  disabled={customBasketStocks.length >= 20}
+                  className={`px-2 py-1 text-xs rounded ${
+                    customBasketStocks.length >= 20
+                      ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                      : 'bg-green-600 text-white hover:bg-green-700'
+                  }`}
+                >
+                  {customBasketStocks.length >= 20 ? 'Limit Reached' : 'Search & Add Stocks'}
+                </button>
+              </div>
+              <div className="text-blue-600">
+                {isCustomBasketMinimized ? '▼' : '▲'}
+              </div>
             </div>
-          )}
-        </div>
+            {/* Expandable Content */}
+            {!isCustomBasketMinimized && (
+              <div className="px-3 pb-3 space-y-3">
+                {/* Stock Search */}
+                {showStockSearch && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      placeholder="Search stocks (e.g., RELIANCE, TCS, HDFC)"
+                      value={stockSearchQuery}
+                      onChange={handleStockSearch}
+                      onBlur={handleSearchInputBlur}
+                      className="w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                    {searchResults.length > 0 && (
+                      <div className="max-h-32 overflow-y-auto border rounded-lg bg-white">
+                        {searchResults.map((stock) => (
+                          <button
+                            key={stock}
+                            onClick={() => addStockToBasket(stock)}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          >
+                            {stock}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+                {/* Custom Basket Stocks List */}
+                <SimpleCustomBasket 
+                  customBasketStocks={customBasketStocks} 
+                  removeStockFromBasket={removeStockFromBasket} 
+                />
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Search Bar */}
-        <div className="bg-white rounded-lg border border-gray-200 p-2 shadow-sm">
-          <div className="flex items-center gap-2">
+        {/* Search Bar - Compact 25% width */}
+        <div className="bg-white rounded-lg border border-gray-200 p-1.5 shadow-sm w-1/4">
+          <div className="flex items-center gap-1.5">
             <div className="flex-1 relative">
-              <div className="absolute inset-y-0 left-0 pl-2 flex items-center pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="absolute inset-y-0 left-0 pl-1.5 flex items-center pointer-events-none">
+                <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
               <input
                 type="text"
-                placeholder="Search stocks (e.g., RELIANCE, TCS)..."
+                placeholder="Search stocks..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-7 pr-3 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </div>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                className="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
               >
-                Clear
+                ×
               </button>
             )}
           </div>
