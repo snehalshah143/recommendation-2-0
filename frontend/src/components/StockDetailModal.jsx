@@ -64,25 +64,97 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [] }) => {
   }, [stock]);
 
 
-  // Get targets and stoplosses - dummy calculations
+  // Get targets and stoplosses based on trade duration and alert price
   const getTargetsAndStoplosses = (timeframe) => {
-    const basePrice = ltp || stock?.price || 0;
-    const multipliers = {
-      'INTRADAY': { target: 0.02, stoploss: 0.01 },
-      'SHORTTERM': { target: 0.05, stoploss: 0.03 },
-      'POSITIONAL': { target: 0.10, stoploss: 0.05 },
-      'LONGTERM': { target: 0.20, stoploss: 0.10 }
-    };
+    const alertPrice = ltp || stock?.price || 0;
     
-    const mult = multipliers[timeframe] || multipliers['INTRADAY'];
+    if (alertPrice === 0) {
+      return {
+        target1: '0.00',
+        target2: '0.00', 
+        target3: '0.00',
+        stoploss1: '0.00',
+        stoploss2: '0.00',
+        hardStoploss: '0.00'
+      };
+    }
+
+    let targets, stoplosses;
+    
+    switch (timeframe) {
+      case 'INTRADAY':
+        targets = {
+          t1: alertPrice * 1.015,  // +1.5%
+          t2: alertPrice * 1.025,  // +2.5%
+          t3: alertPrice * 1.04    // +4%
+        };
+        stoplosses = {
+          sl1: alertPrice * 0.99,  // -1%
+          sl2: alertPrice * 0.98,  // -2%
+          hardSL: alertPrice * 0.97 // -3%
+        };
+        break;
+        
+      case 'SHORTTERM':
+        targets = {
+          t1: alertPrice * 1.02,   // +2%
+          t2: alertPrice * 1.05,   // +5%
+          t3: alertPrice * 1.08    // +8%
+        };
+        stoplosses = {
+          sl1: alertPrice * 0.98,  // -2%
+          sl2: alertPrice * 0.96,  // -4%
+          hardSL: alertPrice * 0.95 // -5%
+        };
+        break;
+        
+      case 'POSITIONAL':
+        targets = {
+          t1: alertPrice * 1.05,   // +5%
+          t2: alertPrice * 1.08,   // +8%
+          t3: alertPrice * 1.12    // +12%
+        };
+        stoplosses = {
+          sl1: alertPrice * 0.975, // -2.5%
+          sl2: alertPrice * 0.96,  // -4%
+          hardSL: alertPrice * 0.93 // -7%
+        };
+        break;
+        
+      case 'LONGTERM':
+        targets = {
+          t1: alertPrice * 1.10,   // +10%
+          t2: alertPrice * 1.20,   // +20%
+          t3: alertPrice * 1.30    // +30%
+        };
+        stoplosses = {
+          sl1: alertPrice * 0.95,  // -5%
+          sl2: alertPrice * 0.92,  // -8%
+          hardSL: alertPrice * 0.90 // -10%
+        };
+        break;
+        
+      default:
+        // Default to INTRADAY if unknown timeframe
+        targets = {
+          t1: alertPrice * 1.015,
+          t2: alertPrice * 1.025,
+          t3: alertPrice * 1.04
+        };
+        stoplosses = {
+          sl1: alertPrice * 0.99,
+          sl2: alertPrice * 0.98,
+          hardSL: alertPrice * 0.97
+        };
+    }
     
     return {
-      target1: (basePrice * (1 + mult.target)).toFixed(2),
-      target2: (basePrice * (1 + mult.target * 1.5)).toFixed(2),
-      target3: (basePrice * (1 + mult.target * 2)).toFixed(2),
-      stoploss1: (basePrice * (1 - mult.stoploss)).toFixed(2),
-      stoploss2: (basePrice * (1 - mult.stoploss * 1.5)).toFixed(2),
-      hardStoploss: (basePrice * (1 - mult.stoploss * 2)).toFixed(2)
+      target1: targets.t1.toFixed(2),
+      target2: targets.t2.toFixed(2),
+      target3: targets.t3.toFixed(2),
+      stoploss1: stoplosses.sl1.toFixed(2),
+      stoploss2: stoplosses.sl2.toFixed(2),
+      hardStoploss: stoplosses.hardSL.toFixed(2)
     };
   };
 
