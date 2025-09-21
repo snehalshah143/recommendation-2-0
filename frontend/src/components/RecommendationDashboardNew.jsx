@@ -62,6 +62,26 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const [showSettings, setShowSettings] = useState(false);
   const [defaultBaskets, setDefaultBaskets] = useState(['ALL']);
   const [searchQuery, setSearchQuery] = useState('');
+  const [backendStatus, setBackendStatus] = useState('Unknown');
+
+  // Check backend status
+  const checkBackendStatus = useCallback(async () => {
+    if (!apiBaseUrl) {
+      setBackendStatus('Offline');
+      return;
+    }
+    
+    try {
+      const response = await fetch(`${apiBaseUrl}/api/alerts?limit=1`);
+      if (response.ok) {
+        setBackendStatus('Active');
+      } else {
+        setBackendStatus('Inactive');
+      }
+    } catch (error) {
+      setBackendStatus('Inactive');
+    }
+  }, [apiBaseUrl]);
 
   // Toggle functions for multi-select
   const toggleBasket = (basket) => {
@@ -439,6 +459,13 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     fetchAlerts();
   }, [apiBaseUrl]);
 
+  // Check backend status on mount and periodically
+  useEffect(() => {
+    checkBackendStatus();
+    const statusInterval = setInterval(checkBackendStatus, 30000); // Check every 30 seconds
+    return () => clearInterval(statusInterval);
+  }, [checkBackendStatus]);
+
   // Refetch alerts when filters change
   useEffect(() => {
     if (apiBaseUrl) {
@@ -625,24 +652,17 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
             </div>
             {apiBaseUrl && (
               <button
-                onClick={() => {
-                  console.log('Testing backend connection...');
-                  fetch(`${apiBaseUrl}/api/alerts?limit=1`)
-                    .then(response => {
-                      console.log('Backend response:', response.status, response.ok);
-                      if (response.ok) {
-                        console.log('✅ Backend is running and accessible');
-                      } else {
-                        console.log('❌ Backend returned error:', response.status);
-                      }
-                    })
-                    .catch(error => {
-                      console.log('❌ Backend connection failed:', error);
-                    });
-                }}
-                className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                onClick={checkBackendStatus}
+                className={cn(
+                  "px-2 py-1 text-xs rounded transition-colors",
+                  backendStatus === 'Active' 
+                    ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                    : backendStatus === 'Inactive'
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                )}
               >
-                Test Backend
+                Backend: {backendStatus}
               </button>
             )}
           </div>
