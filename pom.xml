@@ -34,11 +34,6 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>compile</scope>
         </dependency>
@@ -95,6 +90,13 @@
             <version>4.11.0</version>
         </dependency>
 
+        <!-- Lombok dependency -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
@@ -111,24 +113,160 @@
             <version>2.13.0</version>
         </dependency>
 
+        <!-- Removed duplicate gson dependency - using version 2.10.1 below -->
         <dependency>
-                         <groupId>com.google.code.gson</groupId>
-                         <artifactId>gson</artifactId>
-                         <version>2.8.0</version>
-              </dependency>
-           <dependency>
-                 <groupId>commons-codec</groupId>
-               <artifactId>commons-codec</artifactId>
-                 <version>1.10</version>
-           </dependency>
+            <groupId>commons-codec</groupId>
+          <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
+
+        <!-- Angel One SmartAPI Integration -->
+        <dependency>
+            <groupId>com.angelbroking.smartapi</groupId>
+            <artifactId>smartapi-java</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okio</groupId>
+            <artifactId>okio</artifactId>
+            <version>3.6.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.warrenstrange</groupId>
+            <artifactId>googleauth</artifactId>
+            <version>1.5.0</version>
+        </dependency>
+
+        <!-- HTTP Client for external API calls -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- Database Migration -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <!-- JUnit 5 for testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Mockito for testing -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring Boot Test with JUnit 5 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.junit.vintage</groupId>
+                    <artifactId>junit-vintage-engine</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <!-- Spring WebFlux Test -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webflux</artifactId>
+        </dependency>
+
+        <!-- Configuration Properties -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
 
     </dependencies>
 
     <build>
+        <sourceDirectory>backend/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>backend/main/resources</directory>
+            </resource>
+        </resources>
     <plugins>
     <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+            <excludes>
+                <exclude>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclude>
+            </excludes>
+        </configuration>
+    </plugin>
+
+    <!-- Flyway Database Migration Plugin -->
+    <plugin>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-maven-plugin</artifactId>
+        <version>8.5.13</version>
+        <configuration>
+            <url>jdbc:sqlite:sqlliteadvisory.db</url>
+            <driver>org.sqlite.JDBC</driver>
+            <locations>
+                <location>classpath:db/migration</location>
+            </locations>
+        </configuration>
+    </plugin>
+
+    <!-- Maven Compiler Plugin -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+            <source>11</source>
+            <target>11</target>
+        </configuration>
+    </plugin>
+
+    <!-- Maven Surefire Plugin for Testing -->
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0</version>
+        <configuration>
+            <includes>
+                <include>**/*Test.java</include>
+                <include>**/*Tests.java</include>
+            </includes>
+        </configuration>
     </plugin>
 
     <plugin>
@@ -136,7 +274,6 @@
         <artifactId>git-code-format-maven-plugin</artifactId>
         <version>3.3</version>
         <executions>
-
             <execution>
                 <id>install-formatter-hook</id>
                 <goals>
