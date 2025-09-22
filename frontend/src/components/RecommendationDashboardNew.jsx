@@ -64,6 +64,32 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [backendStatus, setBackendStatus] = useState('Unknown');
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
+  const [activeMobileTab, setActiveMobileTab] = useState('BUY');
+
+  // Set initial filter visibility based on screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const isMobile = window.innerWidth < 1024; // lg breakpoint
+      setIsFiltersVisible(!isMobile); // Collapsed on mobile, expanded on desktop
+    };
+    
+    // Set initial state
+    checkScreenSize();
+    
+    // Listen for resize events
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  // Ensure active mobile tab is valid based on selected panels
+  useEffect(() => {
+    if (!selectedPanels.includes(activeMobileTab) && activeMobileTab !== 'ALERTS') {
+      // Find the first available panel or default to ALERTS
+      const firstPanel = selectedPanels.find(panel => ['BUY', 'SELL', 'SIDEWAYS'].includes(panel));
+      setActiveMobileTab(firstPanel || 'ALERTS');
+    }
+  }, [selectedPanels, activeMobileTab]);
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -737,12 +763,12 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardHeader apiBaseUrl={apiBaseUrl} onSettingsClick={() => setShowSettings(true)} />
-      <div className="p-2">
-      <div className="max-w-7xl mx-auto space-y-3">
+      <div className="p-2 sm:p-4 lg:p-6">
+      <div className="w-full max-w-none lg:max-w-7xl mx-auto space-y-3">
         {/* Status and Filters Panel - Hideable */}
         {isFiltersVisible ? (
           <div className="bg-white rounded-lg border border-gray-200 p-3 shadow-lg hover:shadow-xl transition-shadow duration-200">
-            <div className="flex gap-2 items-center">
+            <div className="flex flex-col lg:flex-row gap-2 lg:items-center">
               {/* Toggle Icon - At Start */}
               <button
                 onClick={() => setIsFiltersVisible(!isFiltersVisible)}
@@ -989,46 +1015,8 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           </div>
         )}
 
-        {/* Second Row - Search Bar and Active Tags */}
+        {/* Second Row - Active Tags */}
         <div className="flex items-center gap-4">
-          {/* Search Bar */}
-          <div className="bg-white rounded-lg border border-gray-200 p-1.5 shadow-sm w-1/4">
-            <div className="flex items-center gap-1.5">
-              <div className="flex-1 relative">
-                <div className="absolute inset-y-0 left-0 pl-1.5 flex items-center pointer-events-none">
-                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search stocks..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-              </div>
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-            {searchQuery && (
-              <div className="mt-1 text-xs text-gray-600">
-                {filteredStocksData.BUY.length + filteredStocksData.SELL.length + filteredStocksData.SIDEWAYS.length} stocks matching "{searchQuery}"
-                {selectedBaskets.length > 0 && !selectedBaskets.includes('ALL') && (
-                  <span className="ml-2 text-gray-500">
-                    (filtered by {selectedBaskets.join(', ')})
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          
           <span className="text-sm text-gray-600 font-medium">Active:</span>
           <div className="flex flex-wrap gap-1">
             {/* Selected Baskets */}
@@ -1078,6 +1066,78 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
             </span>
           </div>
           </div>
+
+        {/* Mobile Search Bar - Below Active Tags */}
+        <div className="sm:hidden w-2/3 mx-auto">
+          <div className="bg-white rounded border border-gray-200 p-0.5 shadow-sm">
+            <div className="flex items-center">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-1 flex items-center pointer-events-none">
+                  <svg className="h-2.5 w-2.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-4 pr-1 py-0.5 text-[10px] border-0 rounded focus:outline-none"
+                />
+              </div>
+            </div>
+            {searchQuery && (
+              <div className="mt-1 text-[8px] text-gray-600">
+                {filteredStocksData.BUY.length + filteredStocksData.SELL.length + filteredStocksData.SIDEWAYS.length} stocks matching "{searchQuery}"
+                {selectedBaskets.length > 0 && !selectedBaskets.includes('ALL') && (
+                  <span className="ml-1 text-gray-500">
+                    (filtered by {selectedBaskets.join(', ')})
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop Search Bar - Original Position */}
+        <div className="hidden sm:flex items-center gap-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-1.5 shadow-sm w-1/4">
+            <div className="flex items-center gap-1.5">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-1.5 flex items-center pointer-events-none">
+                  <svg className="h-3.5 w-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search stocks..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-6 pr-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                />
+              </div>
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+            {searchQuery && (
+              <div className="mt-1 text-xs text-gray-600">
+                {filteredStocksData.BUY.length + filteredStocksData.SELL.length + filteredStocksData.SIDEWAYS.length} stocks matching "{searchQuery}"
+                {selectedBaskets.length > 0 && !selectedBaskets.includes('ALL') && (
+                  <span className="ml-2 text-gray-500">
+                    (filtered by {selectedBaskets.join(', ')})
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
 
           {/* Custom Basket Panel - Inline with filters */}
           {selectedBaskets.includes('CUSTOM') && (
@@ -1163,19 +1223,71 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                 </div>
               )}
             </div>
+            </div>
+          )}
         </div>
-            )}
-          </div>
           )}
 
 
         {/* Main Content Layout */}
-        <div className="relative">
+        <div className="flex flex-col lg:flex-row gap-3">
+          {/* Mobile Tab Navigation */}
+          <div className="lg:hidden">
+            <div className="flex border-b border-gray-200 bg-white rounded-t-lg">
+              {selectedPanels.includes('BUY') && (
+              <button
+                  onClick={() => setActiveMobileTab('BUY')}
+                  className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeMobileTab === 'BUY' 
+                      ? 'border-green-500 text-green-600 bg-green-50' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  BUY ({filteredStocksData.BUY.length})
+              </button>
+            )}
+              {selectedPanels.includes('SELL') && (
+                <button
+                  onClick={() => setActiveMobileTab('SELL')}
+                  className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeMobileTab === 'SELL' 
+                      ? 'border-red-500 text-red-600 bg-red-50' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  SELL ({filteredStocksData.SELL.length})
+                </button>
+              )}
+              {selectedPanels.includes('SIDEWAYS') && (
+                <button
+                  onClick={() => setActiveMobileTab('SIDEWAYS')}
+                  className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                    activeMobileTab === 'SIDEWAYS' 
+                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50' 
+                      : 'border-transparent text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  SIDEWAYS ({filteredStocksData.SIDEWAYS.length})
+                </button>
+              )}
+              <button
+                onClick={() => setActiveMobileTab('ALERTS')}
+                className={`flex-1 px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                  activeMobileTab === 'ALERTS' 
+                    ? 'border-blue-500 text-blue-600 bg-blue-50' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                ALERTS
+              </button>
+            </div>
+        </div>
+
           {/* Stock Panels Container */}
-          <div className="flex gap-3 mr-[42%] w-3/5">
+          <div className="flex flex-col lg:flex-row gap-3 w-full lg:w-3/5">
             {/* BUY Section */}
             {selectedPanels.includes('BUY') && (
-              <Card className="h-[500px] flex-1">
+              <Card className="h-[400px] sm:h-[500px] flex-1 hidden lg:block">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-green-700 flex justify-between items-center">
                 BUY
@@ -1185,7 +1297,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[400px] overflow-y-auto px-4 pb-4">
+              <div className="h-[300px] sm:h-[400px] overflow-y-auto px-2 sm:px-4 pb-4">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -1195,7 +1307,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                     {searchQuery ? `No BUY stocks matching "${searchQuery}"` : 'No BUY recommendations'}
                   </div>
                 ) : (
-                  <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                  <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}>
                     {filteredStocksData.BUY.map((stock) => (
                       <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
                     ))}
@@ -1208,7 +1320,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
             {/* SELL Section */}
             {selectedPanels.includes('SELL') && (
-              <Card className="h-[500px] flex-1">
+              <Card className="h-[400px] sm:h-[500px] flex-1 hidden lg:block">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-red-700 flex justify-between items-center">
                 SELL
@@ -1218,7 +1330,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[400px] overflow-y-auto px-4 pb-4">
+              <div className="h-[300px] sm:h-[400px] overflow-y-auto px-2 sm:px-4 pb-4">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
@@ -1228,7 +1340,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                     {searchQuery ? `No SELL stocks matching "${searchQuery}"` : 'No SELL recommendations'}
                   </div>
                 ) : (
-                  <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                  <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}>
                     {filteredStocksData.SELL.map((stock) => (
                       <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
                     ))}
@@ -1241,7 +1353,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
             {/* SIDEWAYS Section */}
             {selectedPanels.includes('SIDEWAYS') && (
-              <Card className="h-[500px] flex-1">
+              <Card className="h-[400px] sm:h-[500px] flex-1 hidden lg:block">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-yellow-700 flex justify-between items-center">
                 SIDEWAYS
@@ -1251,7 +1363,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[400px] overflow-y-auto px-4 pb-4">
+              <div className="h-[300px] sm:h-[400px] overflow-y-auto px-2 sm:px-4 pb-4">
                 {loading ? (
                   <div className="flex items-center justify-center h-32">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
@@ -1261,7 +1373,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                     {searchQuery ? `No SIDEWAYS stocks matching "${searchQuery}"` : 'No SIDEWAYS recommendations'}
                   </div>
                 ) : (
-                  <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                  <div className={`grid gap-2 ${selectedPanels.length === 1 ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4' : selectedPanels.length === 2 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2'}`}>
                     {filteredStocksData.SIDEWAYS.map((stock) => (
                       <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
                     ))}
@@ -1273,8 +1385,8 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
             )}
           </div>
 
-          {/* Alerts Section - Fixed on Right */}
-          <Card className="h-[500px] absolute top-0 right-0 w-2/5">
+          {/* Alerts Section - Responsive */}
+          <Card className="h-[400px] sm:h-[500px] w-full lg:w-2/5 hidden lg:block">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg text-blue-700 flex justify-between items-center">
                 ALERTS
@@ -1282,7 +1394,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="h-[400px] overflow-y-auto px-2 pb-4">
+              <div className="h-[300px] sm:h-[400px] overflow-y-auto px-2 pb-4">
                 {(() => {
                   const filteredAlerts = filterAlertsByTime(alerts);
                   return filteredAlerts.length === 0 ? (
@@ -1336,6 +1448,130 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       </div>
       </div>
 
+
+        {/* Mobile Tab Content */}
+        <div className="lg:hidden">
+          {activeMobileTab === 'BUY' && selectedPanels.includes('BUY') && (
+            <Card className="h-[400px]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-green-700 flex justify-between items-center">
+                  BUY
+                  <span className="text-sm font-normal text-gray-500">
+                    {filteredStocksData.BUY.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px] overflow-y-auto px-2 sm:px-4 pb-4">
+                {loading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                  </div>
+                ) : filteredStocksData.BUY.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">
+                    {searchQuery ? `No BUY stocks matching "${searchQuery}"` : 'No BUY recommendations'}
+                  </div>
+                ) : (
+                  <div className="grid gap-2 grid-cols-2">
+                    {filteredStocksData.BUY.map((stock) => (
+                      <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeMobileTab === 'SELL' && selectedPanels.includes('SELL') && (
+            <Card className="h-[400px]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-red-700 flex justify-between items-center">
+                  SELL
+                  <span className="text-sm font-normal text-gray-500">
+                    {filteredStocksData.SELL.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px] overflow-y-auto px-2 sm:px-4 pb-4">
+                {loading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+                  </div>
+                ) : filteredStocksData.SELL.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">
+                    {searchQuery ? `No SELL stocks matching "${searchQuery}"` : 'No SELL recommendations'}
+                  </div>
+                ) : (
+                  <div className="grid gap-2 grid-cols-2">
+                    {filteredStocksData.SELL.map((stock) => (
+                      <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeMobileTab === 'SIDEWAYS' && selectedPanels.includes('SIDEWAYS') && (
+            <Card className="h-[400px]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-yellow-700 flex justify-between items-center">
+                  SIDEWAYS
+                  <span className="text-sm font-normal text-gray-500">
+                    {filteredStocksData.SIDEWAYS.length}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px] overflow-y-auto px-2 sm:px-4 pb-4">
+                {loading ? (
+                  <div className="flex items-center justify-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600"></div>
+                  </div>
+                ) : filteredStocksData.SIDEWAYS.length === 0 ? (
+                  <div className="text-center text-gray-500 py-8">
+                    {searchQuery ? `No SIDEWAYS stocks matching "${searchQuery}"` : 'No SIDEWAYS recommendations'}
+                  </div>
+                ) : (
+                  <div className="grid gap-2 grid-cols-2">
+                    {filteredStocksData.SIDEWAYS.map((stock) => (
+                      <StockCard key={stock.symbol} stock={stock} onClick={handleStockClick} allAlerts={alerts} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {activeMobileTab === 'ALERTS' && (
+            <Card className="h-[400px]">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg text-blue-700 flex justify-between items-center">
+                  ALERTS
+                  <span className="text-xs text-gray-500 font-normal">Latest on top</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="h-[300px] overflow-y-auto px-2 sm:px-4 pb-4">
+                <div className="space-y-2">
+                  {alerts.map((alert) => (
+                    <AlertCard key={alert.id} alert={alert} />
+                  ))}
+                  {alerts.length === 0 && (
+                    <div className="text-center text-gray-500 py-8">
+                      No alerts available
+                    </div>
+                  )}
+                  {hasMoreAlerts && (
+                    <button
+                      onClick={loadMoreAlerts}
+                      className="w-full py-2 px-4 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                    >
+                      Load More Alerts
+                    </button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
 
       {/* Stock Detail Modal */}
       <StockDetailModal
@@ -1460,9 +1696,9 @@ function AlertCard({ alert, allAlerts }) {
         )}>
           {alert.action} - {alert.symbol} 
           <span className="ml-2">@ ₹{alert.price?.toFixed(2) || '0.00'}</span>
-          <span className="text-xs text-gray-500 ml-2" style={{ fontSize: '10px' }}>
+            <span className="text-xs text-gray-500 ml-2" style={{ fontSize: '10px' }}>
             (since {sinceDays} day{sinceDays !== 1 ? 's' : ''})
-          </span>
+            </span>
         </div>
         <div className="text-xs text-gray-500">
           {alert.source} - {formatTimestamp(alert.timestamp)}

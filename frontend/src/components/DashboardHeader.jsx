@@ -238,11 +238,26 @@ const DashboardHeader = React.memo(({ apiBaseUrl = '', onSettingsClick }) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-gradient-to-r from-gray-50 to-gray-100 shadow-lg border-b border-gray-200 p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Left side - Logo and Title */}
-          <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-50 bg-gradient-to-r from-gray-50 to-gray-100 shadow-lg border-b border-gray-200 h-[12vh] sm:h-auto flex items-center">
+      <div className="max-w-7xl mx-auto w-full px-2 sm:px-4">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-0.5 sm:gap-4 h-full sm:h-auto">
+          {/* Mobile Layout - Centered Titles with Separator */}
+          <div className="sm:hidden w-full flex justify-center items-center gap-2">
+            <h1 className="text-lg font-black tracking-wide drop-shadow-sm transition-all duration-300">
+              <span className="bg-gradient-to-r from-blue-600 via-blue-700 to-green-600 bg-clip-text text-transparent">
+                Ideas To Invest
+              </span>
+            </h1>
+            <div className="w-px h-4 bg-gray-400"></div>
+            <h2 className="text-lg font-bold tracking-wide drop-shadow-sm transition-all duration-300">
+              <span className="bg-gradient-to-r from-red-600 via-red-700 to-orange-600 bg-clip-text text-transparent">
+                Ideas To Trade
+              </span>
+            </h2>
+          </div>
+
+          {/* Desktop Layout - Original Design */}
+          <div className="hidden sm:flex items-center gap-3">
             <div className="flex items-center gap-3">
               <div className="flex flex-col space-y-1 group">
                 <h1 className="text-3xl font-black tracking-wide drop-shadow-sm transition-all duration-300 group-hover:scale-105">
@@ -259,8 +274,103 @@ const DashboardHeader = React.memo(({ apiBaseUrl = '', onSettingsClick }) => {
             </div>
           </div>
 
-          {/* Right side - Market Info */}
-          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+          {/* Mobile Market Info Layout */}
+          <div className="sm:hidden w-full flex flex-col gap-0.5">
+            {/* NIFTY and BANKNIFTY in same row */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-medium text-gray-600">NIFTY:</span>
+                <div className="flex items-center gap-0.5">
+                  <span 
+                    key={`nifty-${indicesData.nifty}`}
+                    className="text-[10px] font-semibold text-blue-600 transition-all duration-500 ease-in-out"
+                  >
+                    {loading ? (
+                      <span className="animate-pulse">---</span>
+                    ) : (
+                      formatPrice(indicesData.nifty)
+                    )}
+                  </span>
+                  {!loading && indicesData.niftyChange !== 0 && (
+                    <span className={cn(
+                      "text-[8px] font-medium px-1 py-0.5 rounded transition-all duration-300",
+                      indicesData.niftyChange >= 0 
+                        ? "text-green-600 bg-green-100" 
+                        : "text-red-600 bg-red-100"
+                    )}>
+                      {indicesData.niftyChange >= 0 ? '+' : ''}{indicesData.niftyChange.toFixed(2)} ({indicesData.niftyChangePercent >= 0 ? '+' : ''}{indicesData.niftyChangePercent.toFixed(2)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-medium text-gray-600">BANKNIFTY:</span>
+                <div className="flex items-center gap-0.5">
+                  <span 
+                    key={`banknifty-${indicesData.banknifty}`}
+                    className="text-[10px] font-semibold text-red-600 transition-all duration-500 ease-in-out"
+                  >
+                    {loading ? (
+                      <span className="animate-pulse">---</span>
+                    ) : (
+                      formatPrice(indicesData.banknifty)
+                    )}
+                  </span>
+                  {!loading && indicesData.bankniftyChange !== 0 && (
+                    <span className={cn(
+                      "text-[8px] font-medium px-1 py-0.5 rounded transition-all duration-300",
+                      indicesData.bankniftyChange >= 0 
+                        ? "text-green-600 bg-green-100" 
+                        : "text-red-600 bg-red-100"
+                    )}>
+                      {indicesData.bankniftyChange >= 0 ? '+' : ''}{indicesData.bankniftyChange.toFixed(2)} ({indicesData.bankniftyChangePercent >= 0 ? '+' : ''}{indicesData.bankniftyChangePercent.toFixed(2)}%)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Time Row with Market Status and Settings */}
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-medium text-gray-600">Market:</span>
+                <span
+                  className={cn(
+                    "px-1 py-0.5 rounded-full text-[10px] font-semibold",
+                    indicesData.marketOpen
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  )}
+                >
+                  {indicesData.marketOpen ? "OPEN" : "CLOSED"}
+                </span>
+                {isUpdating && (
+                  <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse" title="Updating..."></div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-medium text-gray-600">Time:</span>
+                <span className="font-semibold text-gray-800 text-[10px]">
+                  {formatTime(currentTime)}
+                </span>
+                <button
+                  onClick={onSettingsClick || (() => {})}
+                  className="p-1 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded-lg transition-colors"
+                  title="Settings"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Market Info Layout */}
+          <div className="hidden sm:flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             {/* Indices */}
             <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
@@ -268,7 +378,7 @@ const DashboardHeader = React.memo(({ apiBaseUrl = '', onSettingsClick }) => {
                 <div className="flex items-center gap-1">
                   <span 
                     key={`nifty-${indicesData.nifty}`}
-                    className="font-semibold text-blue-600 transition-all duration-500 ease-in-out"
+                    className="text-base font-semibold text-blue-600 transition-all duration-500 ease-in-out"
                   >
                     {loading ? (
                       <span className="animate-pulse">---</span>
@@ -294,7 +404,7 @@ const DashboardHeader = React.memo(({ apiBaseUrl = '', onSettingsClick }) => {
                 <div className="flex items-center gap-1">
                   <span 
                     key={`banknifty-${indicesData.banknifty}`}
-                    className="font-semibold text-red-600 transition-all duration-500 ease-in-out"
+                    className="text-base font-semibold text-red-600 transition-all duration-500 ease-in-out"
                   >
                     {loading ? (
                       <span className="animate-pulse">---</span>
