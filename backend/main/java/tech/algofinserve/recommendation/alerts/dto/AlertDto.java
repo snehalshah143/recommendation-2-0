@@ -10,7 +10,7 @@ public class AlertDto {
     private Instant alertDate;
     private String scanName;
     private BuySell buySell;
-    private Integer daysSince;
+    private Integer sinceDays;
 
     public AlertDto() {}
 
@@ -20,16 +20,16 @@ public class AlertDto {
         this.alertDate = alertDate;
         this.scanName = scanName;
         this.buySell = buySell;
-        this.daysSince = calculateDaysSince(alertDate);
+        this.sinceDays = 0; // Will be calculated by service
     }
 
-    public AlertDto(String stockCode, String price, Instant alertDate, String scanName, BuySell buySell, Integer daysSince) {
+    public AlertDto(String stockCode, String price, Instant alertDate, String scanName, BuySell buySell, Integer sinceDays) {
         this.stockCode = stockCode;
         this.price = price;
         this.alertDate = alertDate;
         this.scanName = scanName;
         this.buySell = buySell;
-        this.daysSince = daysSince;
+        this.sinceDays = sinceDays;
     }
 
     public String getStockCode() { return stockCode; }
@@ -39,23 +39,11 @@ public class AlertDto {
     public Instant getAlertDate() { return alertDate; }
     public void setAlertDate(Instant alertDate) { 
         this.alertDate = alertDate; 
-        this.daysSince = calculateDaysSince(alertDate);
     }
     public String getScanName() { return scanName; }
     public void setScanName(String scanName) { this.scanName = scanName; }
     public BuySell getBuySell() { return buySell; }
     public void setBuySell(BuySell buySell) { this.buySell = buySell; }
-    public Integer getDaysSince() { return daysSince; }
-    public void setDaysSince(Integer daysSince) { this.daysSince = daysSince; }
-
-    /**
-     * Calculate days since the alert date
-     */
-    private Integer calculateDaysSince(Instant alertDate) {
-        if (alertDate == null) {
-            return 0;
-        }
-        long days = java.time.Duration.between(alertDate, Instant.now()).toDays();
-        return (int) days;
-    }
+    public Integer getSinceDays() { return sinceDays; }
+    public void setSinceDays(Integer sinceDays) { this.sinceDays = sinceDays; }
 }

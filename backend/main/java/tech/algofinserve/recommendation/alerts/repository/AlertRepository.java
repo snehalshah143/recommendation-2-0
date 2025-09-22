@@ -11,4 +11,5 @@ import java.util.List;
 public interface AlertRepository extends JpaRepository<AlertEntity, Long> {
     List<AlertEntity> findAllByOrderByAlertDateDesc(Pageable pageable);
     List<AlertEntity> findByStockCodeAndAlertDateAfterOrderByAlertDateDesc(String stockCode, Instant after);
+    List<AlertEntity> findByStockCodeOrderByAlertDateDesc(String stockCode);
 }

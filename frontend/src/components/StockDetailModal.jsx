@@ -238,51 +238,14 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
 
   // Calculate alert duration based on current consecutive streak
   const getAlertDuration = () => {
-    if (!alerts || alerts.length === 0) return "No alerts";
+    if (!stock) return "No stock data";
     
-    // Determine the action type based on stock signal
-    const actionType = stock?.action || 'BUY';
+    // Use sinceDays from backend (already calculated)
+    const sinceDays = stock.sinceDays || stock.since_days || 0;
     
-    // Get all alerts for this stock, sorted by date (newest first)
-    const stockAlerts = alerts
-      .filter(alert => alert.symbol === stock?.symbol)
-      .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    if (stockAlerts.length === 0) return `No ${actionType.toLowerCase()} alerts`;
-    
-    // Count consecutive alerts of the same type from the most recent
-    let consecutiveCount = 0;
-    let currentStreakType = null;
-    
-    for (const alert of stockAlerts) {
-      if (currentStreakType === null) {
-        // First alert - start the streak
-        currentStreakType = alert.action;
-        if (alert.action === actionType) {
-          consecutiveCount = 1;
-        } else {
-          // Most recent alert is different type, so no current streak
-          break;
-        }
-      } else if (alert.action === currentStreakType) {
-        // Continue the current streak
-        consecutiveCount++;
-      } else {
-        // Different action type - streak is broken
-        break;
-      }
-    }
-    
-    // Check if the current streak matches the stock's action type
-    if (currentStreakType !== actionType || consecutiveCount === 0) {
-      return `No current ${actionType.toLowerCase()} streak`;
-    }
-    
-    // Calculate duration based on consecutive count
-    if (consecutiveCount === 1) return "since 1 day";
-    if (consecutiveCount <= 7) return `since ${consecutiveCount} days`;
-    if (consecutiveCount <= 30) return `since ${Math.floor(consecutiveCount / 7)} week${Math.floor(consecutiveCount / 7) > 1 ? 's' : ''}`;
-    return `since ${consecutiveCount} days`;
+    if (sinceDays === 0) return "since 0 days";
+    if (sinceDays === 1) return "since 1 day";
+    return `since ${sinceDays} days`;
   };
 
   const handleOrderSubmit = (e) => {

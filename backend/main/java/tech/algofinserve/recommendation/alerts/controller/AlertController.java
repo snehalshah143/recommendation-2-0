@@ -44,4 +44,11 @@ public class AlertController {
     public List<AlertDto> history(@PathVariable String code, @RequestParam(defaultValue = "7") int days) {
         return service.getStockHistory(code, days);
     }
+
+    // recalculate since days for all existing alerts
+    @PostMapping("/recalculate-since-days")
+    public ResponseEntity<String> recalculateSinceDays() {
+        service.recalculateAllSinceDays();
+        return ResponseEntity.ok("Since days recalculated for all alerts");
+    }
 }

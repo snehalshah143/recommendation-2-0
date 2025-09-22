@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS alerts (
     alert_date DATETIME NOT NULL,
     scan_name VARCHAR(255),
     buy_sell VARCHAR(10),
+    since_days INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

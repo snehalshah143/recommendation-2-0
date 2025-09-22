@@ -71,7 +71,12 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const [totalAlerts, setTotalAlerts] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreAlerts, setHasMoreAlerts] = useState(true);
-  const ALERTS_PER_PAGE = 50;
+  const INITIAL_ALERTS_COUNT = 500;
+  const LOAD_MORE_ALERTS_COUNT = 100;
+  
+  // SSE connection states
+  const [sseReconnectAttempts, setSseReconnectAttempts] = useState(0);
+  const [lastSseError, setLastSseError] = useState(null);
 
   // Check backend status
   const checkBackendStatus = useCallback(async () => {
@@ -316,11 +321,16 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const fetchAlerts = useCallback(async (page = 1, append = false) => {
     try {
       setIsLoadingMore(true);
-      const url = apiBaseUrl && apiBaseUrl.trim() !== '' 
-        ? `${apiBaseUrl}/api/alerts?limit=${ALERTS_PER_PAGE}&offset=${(page - 1) * ALERTS_PER_PAGE}` 
-        : `/api/alerts?limit=${ALERTS_PER_PAGE}&offset=${(page - 1) * ALERTS_PER_PAGE}`;
       
-      console.log(`🔗 Fetching alerts page ${page}:`, url);
+      // Use different limits for initial load vs load more
+      const limit = page === 1 ? INITIAL_ALERTS_COUNT : LOAD_MORE_ALERTS_COUNT;
+      const offset = page === 1 ? 0 : INITIAL_ALERTS_COUNT + (page - 2) * LOAD_MORE_ALERTS_COUNT;
+      
+      const url = apiBaseUrl && apiBaseUrl.trim() !== '' 
+        ? `${apiBaseUrl}/api/alerts?limit=${limit}&offset=${offset}` 
+        : `/api/alerts?limit=${limit}&offset=${offset}`;
+      
+      console.log(`🔗 Fetching alerts page ${page} (limit: ${limit}, offset: ${offset}):`, url);
       const response = await fetch(url);
       
       if (response.ok) {
@@ -345,7 +355,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         
         // Update pagination info
         setCurrentPage(page);
-        setHasMoreAlerts(data.length === ALERTS_PER_PAGE);
+        setHasMoreAlerts(data.length === limit);
         setTotalAlerts(prev => prev + data.length);
         
         if (append) {
@@ -364,7 +374,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [apiBaseUrl, ALERTS_PER_PAGE]);
+  }, [apiBaseUrl, INITIAL_ALERTS_COUNT, LOAD_MORE_ALERTS_COUNT]);
 
   // Load more alerts function
   const loadMoreAlerts = useCallback(() => {
@@ -373,31 +383,51 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     }
   }, [fetchAlerts, currentPage, isLoadingMore, hasMoreAlerts]);
 
-  // SSE connection for real-time alerts
+  // Manual SSE reconnection function
+  const reconnectSSE = useCallback(() => {
+    console.log('🔄 Manual SSE reconnection requested');
+    setSseReconnectAttempts(0);
+    setLastSseError(null);
+    // The useEffect will handle the reconnection
+    window.location.reload(); // Simple but effective
+  }, []);
+
+  // SSE connection for real-time alerts with auto-reconnection
   useEffect(() => {
-    const sseUrl = apiBaseUrl && apiBaseUrl.trim() !== '' ? `${apiBaseUrl}/api/alerts/stream` : '/api/alerts/stream';
-    console.log('🔗 Attempting to connect to SSE:', sseUrl);
-    console.log('🔗 Full URL details:', {
-      protocol: window.location.protocol,
-      host: window.location.host,
-      apiBaseUrl: apiBaseUrl,
-      sseUrl: sseUrl
-    });
-    
-    const eventSource = new EventSource(sseUrl);
+    let eventSource = null;
+    let reconnectTimeout = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 50; // Increased attempts
+    const baseReconnectDelay = 2000; // 2 second base delay
+    let isDestroyed = false;
+
+    const connectSSE = () => {
+      if (isDestroyed) return;
+      
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      const sseUrl = apiBaseUrl && apiBaseUrl.trim() !== '' ? `${apiBaseUrl}/api/alerts/stream` : '/api/alerts/stream';
+      console.log(`🔗 Attempting SSE connection (attempt ${reconnectAttempts + 1}):`, sseUrl);
+      
+      eventSource = new EventSource(sseUrl);
     
     eventSource.onopen = () => {
+        if (isDestroyed) return;
       console.log('✅ SSE connection opened successfully');
       console.log('✅ SSE readyState:', eventSource.readyState);
       console.log('✅ SSE URL:', eventSource.url);
       setIsConnected(true);
+        setSseReconnectAttempts(0);
+        setLastSseError(null);
+        reconnectAttempts = 0; // Reset on successful connection
     };
 
     eventSource.addEventListener('alert', (event) => {
+        if (isDestroyed) return;
       console.log('📨 Received SSE alert event:', event);
       console.log('📨 Event data:', event.data);
-      console.log('📨 Event type:', event.type);
-      console.log('📨 Event lastEventId:', event.lastEventId);
       
       try {
         const alertData = JSON.parse(event.data);
@@ -415,7 +445,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         
         console.log('📨 Converted to frontend alert:', newAlert);
         setAlerts(prev => {
-          const updated = [newAlert, ...prev];
+            const updated = [newAlert, ...prev];
           console.log('📨 Updated alerts array length:', updated.length);
           return updated;
         });
@@ -428,34 +458,58 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
     // Listen for any message (for debugging)
     eventSource.onmessage = (event) => {
+        if (isDestroyed) return;
       console.log('📨 Received SSE message (any type):', event);
       console.log('📨 Message data:', event.data);
-      console.log('📨 Message type:', event.type);
     };
 
     eventSource.onerror = (error) => {
+        if (isDestroyed) return;
       console.error('❌ SSE connection error:', error);
       console.error('❌ SSE readyState:', eventSource.readyState);
-      console.error('❌ SSE URL:', eventSource.url);
-      console.error('❌ Error details:', {
-        type: error.type,
-        target: error.target,
-        isTrusted: error.isTrusted
-      });
       setIsConnected(false);
+        
+        // Always try to reconnect - no max attempts limit
+        const delay = Math.min(baseReconnectDelay * Math.pow(1.5, reconnectAttempts), 30000); // Max 30 seconds
+        console.log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts + 1})`);
+        setSseReconnectAttempts(reconnectAttempts + 1);
+        setLastSseError(`Reconnecting in ${Math.ceil(delay/1000)}s...`);
+        
+        reconnectTimeout = setTimeout(() => {
+          if (!isDestroyed) {
+            reconnectAttempts++;
+            connectSSE();
+          }
+        }, delay);
+      };
     };
 
-    // Test the connection after 2 seconds
-    setTimeout(() => {
-      console.log('🔍 SSE connection test after 2s:');
-      console.log('🔍 ReadyState:', eventSource.readyState);
-      console.log('🔍 URL:', eventSource.url);
-      console.log('🔍 Is connected:', isConnected);
-    }, 2000);
+    // Start initial connection
+    connectSSE();
+
+    // Connection health check every 10 seconds
+    const healthCheckInterval = setInterval(() => {
+      if (isDestroyed) return;
+      
+      if (eventSource && eventSource.readyState === EventSource.OPEN) {
+        console.log('💓 SSE connection health check: OK');
+      } else {
+        console.log('💓 SSE connection health check: FAILED - reconnecting');
+        setIsConnected(false);
+        connectSSE();
+      }
+    }, 10000); // Every 10 seconds
 
     return () => {
-      console.log('🔌 Closing SSE connection');
+      console.log('🔌 Cleaning up SSE connection');
+      isDestroyed = true;
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      clearInterval(healthCheckInterval);
+      if (eventSource) {
       eventSource.close();
+      }
       setIsConnected(false);
     };
   }, [apiBaseUrl]);
@@ -533,6 +587,8 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     });
   }, [selectedTimeFilter]);
 
+  // Since days calculation is now handled by the backend
+
   // Extract stocks from alerts and categorize them
   const stocksFromAlerts = useCallback(() => {
     try {
@@ -542,20 +598,30 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       let filteredAlerts = filterAlertsByTime(alerts);
     
     // Apply basket filtering
+    console.log('🔍 DEBUG: Checking if basket filtering should be applied:');
+    console.log('  - selectedBaskets.length:', selectedBaskets.length);
+    console.log('  - selectedBaskets.includes("ALL"):', selectedBaskets.includes('ALL'));
+    console.log('  - Should apply filtering:', selectedBaskets.length > 0 && !selectedBaskets.includes('ALL'));
+    
     if (selectedBaskets.length > 0 && !selectedBaskets.includes('ALL')) {
       const beforeCount = filteredAlerts.length;
       
       console.log('🔍 DEBUG: Basket filtering:');
       console.log('  - Selected baskets:', selectedBaskets);
+      console.log('  - Custom basket stocks:', customBasketStocks);
       console.log('  - Alerts before filtering:', filteredAlerts.map(a => `${a.symbol}(${a.action})`));
       
       filteredAlerts = filteredAlerts.filter(alert => {
         // Check if stock belongs to any of the selected baskets
         const belongsToAnyBasket = selectedBaskets.some(basket => {
           if (basket === 'CUSTOM') {
-            return customBasketStocks && customBasketStocks.includes(alert.symbol);
+            const isInCustomBasket = customBasketStocks && customBasketStocks.includes(alert.symbol);
+            console.log(`    - CUSTOM basket check for ${alert.symbol}: ${isInCustomBasket} (customBasketStocks: ${JSON.stringify(customBasketStocks)})`);
+            return isInCustomBasket;
           }
-          return isStockInBasket(alert.symbol, basket);
+          const isInBasket = isStockInBasket(alert.symbol, basket);
+          console.log(`    - ${basket} basket check for ${alert.symbol}: ${isInBasket}`);
+          return isInBasket;
         });
         
         console.log(`  - ${alert.symbol}: ${belongsToAnyBasket ? 'INCLUDED' : 'FILTERED OUT'}`);
@@ -583,32 +649,49 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       console.log(`  ${stock}: [${actions.join(', ')}]`);
     });
 
-    // For each stock, find the LAST alert (by array order) and use that action
+    // For each stock, find the MOST RECENT alert and use that action
+    const processedStocks = new Set(); // Track processed stocks to avoid duplicates
+    
     Object.keys(alertsByStock).forEach(stockSymbol => {
-      const stockAlerts = alertsByStock[stockSymbol];
-      const lastAlert = stockAlerts[stockAlerts.length - 1]; // Get the last alert
+      // Skip if already processed (avoid duplicates)
+      if (processedStocks.has(stockSymbol)) {
+        console.log(`⚠️ Skipping duplicate stock: ${stockSymbol}`);
+        return;
+      }
+      processedStocks.add(stockSymbol);
       
-      console.log(`📋 Stock ${stockSymbol}: Last alert action = ${lastAlert.action}`);
+      const stockAlerts = alertsByStock[stockSymbol];
+      // Sort by timestamp to get the most recent alert
+      const sortedStockAlerts = stockAlerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      const mostRecentAlert = sortedStockAlerts[0]; // Get the most recent alert
+      
+      console.log(`📋 Stock ${stockSymbol}: Most recent alert action = ${mostRecentAlert.action}`);
 
-      // Create stock object from last alert
+      // Use sinceDays from backend (already calculated)
+      // Try both camelCase and snake_case field names
+      const sinceDays = mostRecentAlert.sinceDays || mostRecentAlert.since_days || 0;
+      console.log(`📅 Stock ${stockSymbol}: Since ${sinceDays} days (from backend)`);
+
+      // Create stock object from most recent alert
       const stock = {
         symbol: stockSymbol,
-        price: lastAlert.price,
-        action: lastAlert.action,
-        source: lastAlert.source,
-        timestamp: lastAlert.timestamp
+        price: mostRecentAlert.price,
+        action: mostRecentAlert.action,
+        source: mostRecentAlert.source,
+        timestamp: mostRecentAlert.timestamp,
+        sinceDays: sinceDays
       };
 
-      // Categorize based on last action
-      if (lastAlert.action === 'BUY') {
+      // Categorize based on most recent action
+      if (mostRecentAlert.action === 'BUY') {
         categorized.BUY.push(stock);
-        console.log(`✅ Added ${stockSymbol} to BUY bucket`);
-      } else if (lastAlert.action === 'SELL') {
+        console.log(`✅ Added ${stockSymbol} to BUY bucket (since ${sinceDays} days)`);
+      } else if (mostRecentAlert.action === 'SELL') {
         categorized.SELL.push(stock);
-        console.log(`✅ Added ${stockSymbol} to SELL bucket`);
+        console.log(`✅ Added ${stockSymbol} to SELL bucket (since ${sinceDays} days)`);
       } else {
         categorized.SIDEWAYS.push(stock);
-        console.log(`✅ Added ${stockSymbol} to SIDEWAYS bucket`);
+        console.log(`✅ Added ${stockSymbol} to SIDEWAYS bucket (since ${sinceDays} days)`);
       }
     });
 
@@ -618,9 +701,9 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
       SIDEWAYS: categorized.SIDEWAYS.length
     });
 
-    console.log('📋 BUY stocks:', categorized.BUY.map(s => s.symbol));
-    console.log('📋 SELL stocks:', categorized.SELL.map(s => s.symbol));
-    console.log('📋 SIDEWAYS stocks:', categorized.SIDEWAYS.map(s => s.symbol));
+    console.log('📋 BUY stocks:', categorized.BUY.map(s => `${s.symbol}(${s.sinceDays}d)`));
+    console.log('📋 SELL stocks:', categorized.SELL.map(s => `${s.symbol}(${s.sinceDays}d)`));
+    console.log('📋 SIDEWAYS stocks:', categorized.SIDEWAYS.map(s => `${s.symbol}(${s.sinceDays}d)`));
 
     return categorized;
     } catch (error) {
@@ -851,12 +934,22 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                   <div className="flex items-center gap-2">
                     <div className={cn(
                       "w-2 h-2 rounded-full",
-                      apiBaseUrl ? (isConnected ? "bg-green-500" : "bg-red-500") : "bg-blue-500"
+                      isConnected ? "bg-green-500" : "bg-red-500"
                     )}></div>
                     <span>
-                      {apiBaseUrl && apiBaseUrl.trim() !== '' ? (isConnected ? 'SSE Connected' : 'SSE Disconnected') : (isConnected ? 'SSE Connected' : 'SSE Disconnected')}
+                      {isConnected ? 'SSE Connected' : 'SSE Disconnected'}
+                      {sseReconnectAttempts > 0 && (
+                        <span className="text-xs text-orange-600 ml-1">
+                          (Reconnecting {sseReconnectAttempts})
+                        </span>
+                      )}
                     </span>
                   </div>
+                  {lastSseError && (
+                    <div className="text-xs text-red-600 max-w-xs truncate" title={lastSseError}>
+                      {lastSseError}
+                    </div>
+                  )}
                   <button
                     onClick={checkBackendStatus}
                     className={cn(
@@ -1045,11 +1138,32 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                     </div>
                   )}
                 {/* Custom Basket Stocks List */}
-                <SimpleCustomBasket 
-                  customBasketStocks={customBasketStocks} 
-                  removeStockFromBasket={removeStockFromBasket} 
-              />
+                <div className="space-y-2">
+                  {customBasketStocks.length === 0 ? (
+                    <div className="text-sm text-gray-500 text-center py-4">
+                      No stocks in custom basket. Click "Search & Add Stocks" to add some.
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {customBasketStocks.map((stock) => (
+                        <div
+                          key={stock}
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full"
+                        >
+                          <span>{stock}</span>
+                        <button
+                          onClick={() => removeStockFromBasket(stock)}
+                            className="ml-1 text-blue-600 hover:text-blue-800 hover:bg-blue-200 rounded-full p-0.5"
+                            title="Remove stock"
+                        >
+                          ×
+                        </button>
+                        </div>
+                    ))}
+                </div>
+              )}
             </div>
+        </div>
             )}
           </div>
           )}
@@ -1200,7 +1314,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                                 Loading...
                               </div>
                             ) : (
-                              `Load More (${totalAlerts} loaded)`
+                              `Load More Alerts (+100) (${totalAlerts} loaded)`
                             )}
                           </button>
                         </div>
@@ -1297,73 +1411,6 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
 // Stock Card Component
 function StockCard({ stock, onClick, allAlerts }) {
-  // Use the same getAlertDuration function from StockDetailModal
-  const getAlertDuration = (stock, allAlerts) => {
-    if (!allAlerts || allAlerts.length === 0) {
-      console.log(`🔍 ${stock.symbol}: No alerts available`);
-      return null;
-    }
-    
-    // Filter alerts for this specific stock
-    const stockAlerts = allAlerts.filter(alert => alert.symbol === stock.symbol);
-    
-    if (stockAlerts.length === 0) {
-      console.log(`🔍 ${stock.symbol}: No alerts found for this stock`);
-      return null;
-    }
-    
-    console.log(`🔍 ${stock.symbol}: Found ${stockAlerts.length} alerts:`, stockAlerts);
-    
-    // Sort by timestamp (newest first)
-    const sortedAlerts = stockAlerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    // Get the action type of the most recent alert
-    const actionType = sortedAlerts[0].action;
-    console.log(`🔍 ${stock.symbol}: Most recent action type: ${actionType}`);
-    
-    // Count consecutive alerts of the same type from the most recent
-    let consecutiveCount = 0;
-    const today = new Date();
-    
-    for (let i = 0; i < sortedAlerts.length; i++) {
-      const alert = sortedAlerts[i];
-      const alertDate = new Date(alert.timestamp);
-      const daysDiff = Math.floor((today - alertDate) / (1000 * 60 * 60 * 24));
-      
-      console.log(`🔍 ${stock.symbol}: Alert ${i + 1} - Action: ${alert.action}, Date: ${alert.timestamp}, Days ago: ${daysDiff}`);
-      
-      // If this is the first alert or same action type, count it
-      if (i === 0 || alert.action === actionType) {
-        consecutiveCount++;
-        console.log(`🔍 ${stock.symbol}: Counted alert ${i + 1}, consecutive count: ${consecutiveCount}`);
-      } else {
-        // Different action type, stop counting
-        console.log(`🔍 ${stock.symbol}: Different action type (${alert.action} vs ${actionType}), stopping count`);
-        break;
-      }
-    }
-    
-    console.log(`🔍 ${stock.symbol}: Final consecutive count: ${consecutiveCount}`);
-    
-    if (consecutiveCount <= 1) {
-      console.log(`🔍 ${stock.symbol}: Only ${consecutiveCount} consecutive alerts, showing as since 0 day`);
-      return {
-        action: actionType,
-        days: 0
-      };
-    }
-    
-    const result = {
-      action: actionType,
-      days: consecutiveCount
-    };
-    
-    console.log(`🔍 ${stock.symbol}: Returning duration:`, result);
-    return result;
-  };
-
-  const alertDuration = getAlertDuration(stock, allAlerts);
-
   return (
     <button
       onClick={() => onClick(stock)}
@@ -1372,9 +1419,9 @@ function StockCard({ stock, onClick, allAlerts }) {
       <div className="font-bold text-gray-900 uppercase" style={{ fontSize: '10px' }}>
         {stock.symbol}
       </div>
-      {alertDuration && (
+      {stock.sinceDays !== undefined && stock.sinceDays > 0 && (
         <div className="text-xs text-gray-600 mt-1" style={{ fontSize: '8px' }}>
-          since {alertDuration.days} day{alertDuration.days > 1 ? 's' : ''}
+          Since {stock.sinceDays} day{stock.sinceDays !== 1 ? 's' : ''}
         </div>
       )}
     </button>
@@ -1397,52 +1444,12 @@ function AlertCard({ alert, allAlerts }) {
   };
 
   // Calculate alert duration for this specific alert
-  const getAlertDuration = (alert, allAlerts) => {
-    if (!allAlerts || allAlerts.length === 0) return null;
-    
-    // Filter alerts for this specific stock
-    const stockAlerts = allAlerts.filter(a => a.symbol === alert.symbol);
-    
-    if (stockAlerts.length === 0) return null;
-    
-    // Sort by timestamp (newest first)
-    const sortedAlerts = stockAlerts.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    
-    // Get the action type of the most recent alert
-    const actionType = sortedAlerts[0].action;
-    
-    // Count consecutive alerts of the same type from the most recent
-    let consecutiveCount = 0;
-    const today = new Date();
-    
-    for (let i = 0; i < sortedAlerts.length; i++) {
-      const a = sortedAlerts[i];
-      const alertDate = new Date(a.timestamp);
-      const daysDiff = Math.floor((today - alertDate) / (1000 * 60 * 60 * 24));
-      
-      // If this is the first alert or same action type, count it
-      if (i === 0 || a.action === actionType) {
-        consecutiveCount++;
-      } else {
-        // Different action type, stop counting
-        break;
-      }
-    }
-    
-    if (consecutiveCount <= 1) {
-      return {
-        action: actionType,
-        days: 0
-      };
-    }
-    
-    return {
-      action: actionType,
-      days: consecutiveCount
-    };
+  // Use sinceDays from backend instead of calculating
+  const getSinceDays = (alert) => {
+    return alert.sinceDays || alert.since_days || 0;
   };
 
-  const alertDuration = getAlertDuration(alert, allAlerts);
+  const sinceDays = getSinceDays(alert);
 
   return (
     <div className="p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
@@ -1453,11 +1460,9 @@ function AlertCard({ alert, allAlerts }) {
         )}>
           {alert.action} - {alert.symbol} 
           <span className="ml-2">@ ₹{alert.price?.toFixed(2) || '0.00'}</span>
-          {alertDuration && (
-            <span className="text-xs text-gray-500 ml-2" style={{ fontSize: '10px' }}>
-              (since {alertDuration.days} day{alertDuration.days > 1 ? 's' : ''})
-            </span>
-          )}
+          <span className="text-xs text-gray-500 ml-2" style={{ fontSize: '10px' }}>
+            (since {sinceDays} day{sinceDays !== 1 ? 's' : ''})
+          </span>
         </div>
         <div className="text-xs text-gray-500">
           {alert.source} - {formatTimestamp(alert.timestamp)}
