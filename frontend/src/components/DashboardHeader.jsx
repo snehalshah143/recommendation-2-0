@@ -29,19 +29,89 @@ const DashboardHeader = React.memo(({ apiBaseUrl = '', onSettingsClick }) => {
 
   // Fetch indices data with stable updates
   const fetchIndicesData = async (isInitialLoad = false) => {
-    if (!apiBaseUrl) {
-      // Fallback data when no backend
-      const fallbackData = {
-        nifty: 24500.0,
-        banknifty: 52000.0,
-        marketOpen: true,
-        niftyChange: 0,
-        niftyChangePercent: 0,
-        bankniftyChange: 0,
-        bankniftyChangePercent: 0
-      };
-      setIndicesData(fallbackData);
-      setHasInitialData(true);
+    if (!apiBaseUrl || apiBaseUrl.trim() === '') {
+      // Use relative path when no apiBaseUrl or empty string
+      const url = '/api/indices';
+      console.log('🔍 Fetching indices from:', url);
+      
+      try {
+        if (isInitialLoad) {
+          setLoading(true);
+        } else {
+          setIsUpdating(true);
+        }
+        setError(null);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        const newData = {
+          nifty: data.nifty || 24500.0,
+          banknifty: data.banknifty || 52000.0,
+          marketOpen: data.marketOpen || false,
+          niftyChange: data.niftyChange || 0,
+          niftyChangePercent: data.niftyChangePercent || 0,
+          bankniftyChange: data.bankniftyChange || 0,
+          bankniftyChangePercent: data.bankniftyChangePercent || 0
+        };
+
+        if (updateTimeoutRef.current) {
+          clearTimeout(updateTimeoutRef.current);
+        }
+
+        updateTimeoutRef.current = setTimeout(() => {
+          setIndicesData(prevData => {
+            const tolerance = 0.01;
+            const hasChanged =
+              Math.abs(prevData.nifty - newData.nifty) > tolerance ||
+              Math.abs(prevData.banknifty - newData.banknifty) > tolerance ||
+              prevData.marketOpen !== newData.marketOpen ||
+              Math.abs(prevData.niftyChange - newData.niftyChange) > tolerance ||
+              Math.abs(prevData.niftyChangePercent - newData.niftyChangePercent) > tolerance ||
+              Math.abs(prevData.bankniftyChange - newData.bankniftyChange) > tolerance ||
+              Math.abs(prevData.bankniftyChangePercent - newData.bankniftyChangePercent) > tolerance;
+
+            if (hasChanged) {
+              console.log('📊 Market data updated:', newData);
+              return newData;
+            }
+            return prevData;
+          });
+        }, 200); // 200ms debounce
+
+        setHasInitialData(true);
+      } catch (err) {
+        console.error('Failed to fetch indices data:', err);
+        setError(err.message);
+        if (!hasInitialData) {
+          setIndicesData({
+            nifty: 22050.75,
+            banknifty: 48725.30,
+            marketOpen: false,
+            niftyChange: 0,
+            niftyChangePercent: 0,
+            bankniftyChange: 0,
+            bankniftyChangePercent: 0
+          });
+          setHasInitialData(true);
+        }
+      } finally {
+        if (isInitialLoad) {
+          setLoading(false);
+        } else {
+          setIsUpdating(false);
+        }
+      }
       return;
     }
 

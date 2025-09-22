@@ -5,7 +5,7 @@ function App() {
   return (
     <div className="App">
       <RecommendationDashboardNew 
-        apiBaseUrl="http://localhost:8082" 
+        apiBaseUrl="" 
       />
     </div>
   );

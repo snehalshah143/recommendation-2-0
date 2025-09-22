@@ -67,20 +67,21 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   // Check backend status
   const checkBackendStatus = useCallback(async () => {
-    if (!apiBaseUrl) {
-      setBackendStatus('Offline');
-      return;
-    }
-    
     try {
-      const response = await fetch(`${apiBaseUrl}/api/alerts?limit=1`);
+      const url = apiBaseUrl && apiBaseUrl.trim() !== '' ? `${apiBaseUrl}/api/alerts?limit=1` : '/api/alerts?limit=1';
+      console.log('🔍 Checking backend status at:', url);
+      const response = await fetch(url);
+      console.log('📡 Backend response status:', response.status);
       if (response.ok) {
         setBackendStatus('Active');
+        console.log('✅ Backend is Active');
       } else {
         setBackendStatus('Inactive');
+        console.log('❌ Backend responded with status:', response.status);
       }
     } catch (error) {
       setBackendStatus('Inactive');
+      console.error('❌ Backend connection error:', error);
     }
   }, [apiBaseUrl]);
 
@@ -305,13 +306,9 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   // Fetch alerts from backend
   const fetchAlerts = useCallback(async () => {
-    if (!apiBaseUrl) {
-      setAlerts([]);
-      return;
-    }
-
     try {
-      const response = await fetch(`${apiBaseUrl}/api/alerts?limit=50`);
+      const url = apiBaseUrl && apiBaseUrl.trim() !== '' ? `${apiBaseUrl}/api/alerts?limit=50` : '/api/alerts?limit=50';
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         console.log('🔗 Raw backend alerts data:', data);
@@ -361,12 +358,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   // SSE connection for real-time alerts
   useEffect(() => {
-    if (!apiBaseUrl) {
-      console.log('❌ No API base URL provided, skipping SSE connection');
-      return;
-    }
-
-    const sseUrl = `${apiBaseUrl}/api/alerts/stream`;
+    const sseUrl = apiBaseUrl && apiBaseUrl.trim() !== '' ? `${apiBaseUrl}/api/alerts/stream` : '/api/alerts/stream';
     console.log('🔗 Attempting to connect to SSE:', sseUrl);
     console.log('🔗 Full URL details:', {
       protocol: window.location.protocol,
@@ -837,24 +829,22 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                       apiBaseUrl ? (isConnected ? "bg-green-500" : "bg-red-500") : "bg-blue-500"
                     )}></div>
                     <span>
-                      {apiBaseUrl ? (isConnected ? 'SSE Connected' : 'SSE Disconnected') : 'No Backend - Connect to see data'}
+                      {apiBaseUrl && apiBaseUrl.trim() !== '' ? (isConnected ? 'SSE Connected' : 'SSE Disconnected') : (isConnected ? 'SSE Connected' : 'SSE Disconnected')}
                     </span>
                   </div>
-                  {apiBaseUrl && (
-                    <button
-                      onClick={checkBackendStatus}
-                      className={cn(
-                        "px-2 py-1 text-xs rounded transition-colors",
-                        backendStatus === 'Active' 
-                          ? "bg-green-100 text-green-700 hover:bg-green-200" 
-                          : backendStatus === 'Inactive'
-                          ? "bg-red-100 text-red-700 hover:bg-red-200"
-                          : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
-                      )}
-                    >
-                      Backend: {backendStatus}
-                    </button>
-                  )}
+                  <button
+                    onClick={checkBackendStatus}
+                    className={cn(
+                      "px-2 py-1 text-xs rounded transition-colors",
+                      backendStatus === 'Active' 
+                        ? "bg-green-100 text-green-700 hover:bg-green-200" 
+                        : backendStatus === 'Inactive'
+                        ? "bg-red-100 text-red-700 hover:bg-red-200"
+                        : "bg-yellow-100 text-yellow-700 hover:bg-yellow-200"
+                    )}
+                  >
+                    Backend: {backendStatus}
+                  </button>
                   {lastUpdate && (
                     <span className="text-xs text-gray-400">Last update: {lastUpdate.toLocaleTimeString()}</span>
                   )}
