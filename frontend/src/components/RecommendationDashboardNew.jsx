@@ -64,6 +64,14 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [backendStatus, setBackendStatus] = useState('Unknown');
   const [isFiltersVisible, setIsFiltersVisible] = useState(true);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalAlerts, setTotalAlerts] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreAlerts, setHasMoreAlerts] = useState(true);
+  const ALERTS_PER_PAGE = 50;
 
   // Check backend status
   const checkBackendStatus = useCallback(async () => {
@@ -304,14 +312,20 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   // No separate stock fetching - stocks come from alerts only
 
-  // Fetch alerts from backend
-  const fetchAlerts = useCallback(async () => {
+  // Fetch alerts from backend with pagination
+  const fetchAlerts = useCallback(async (page = 1, append = false) => {
     try {
-      const url = apiBaseUrl && apiBaseUrl.trim() !== '' ? `${apiBaseUrl}/api/alerts?limit=50` : '/api/alerts?limit=50';
+      setIsLoadingMore(true);
+      const url = apiBaseUrl && apiBaseUrl.trim() !== '' 
+        ? `${apiBaseUrl}/api/alerts?limit=${ALERTS_PER_PAGE}&offset=${(page - 1) * ALERTS_PER_PAGE}` 
+        : `/api/alerts?limit=${ALERTS_PER_PAGE}&offset=${(page - 1) * ALERTS_PER_PAGE}`;
+      
+      console.log(`🔗 Fetching alerts page ${page}:`, url);
       const response = await fetch(url);
+      
       if (response.ok) {
         const data = await response.json();
-        console.log('🔗 Raw backend alerts data:', data);
+        console.log(`🔗 Raw backend alerts data (page ${page}):`, data);
         
         // Convert backend AlertDto to frontend format
         const convertedAlerts = data.map(alert => {
@@ -327,34 +341,37 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
           return converted;
         });
         
-        console.log('✅ Converted alerts:', convertedAlerts);
+        console.log(`✅ Converted alerts (page ${page}):`, convertedAlerts);
         
-        // Apply filters
-        const filteredAlerts = convertedAlerts.filter(alert => {
-          // Filter by selected panels (BUY/SELL/SIDEWAYS)
-          if (selectedPanels.length > 0 && !selectedPanels.includes(alert.action)) {
-            return false;
-          }
-          
-          // Filter by selected timeframes (based on scanName)
-          if (selectedTimeframes.length > 0) {
-            const alertTimeframe = getTimeframeFromScanName(alert.source);
-            if (!selectedTimeframes.includes(alertTimeframe)) {
-              return false;
-            }
-          }
-          
-          return true;
-        });
+        // Update pagination info
+        setCurrentPage(page);
+        setHasMoreAlerts(data.length === ALERTS_PER_PAGE);
+        setTotalAlerts(prev => prev + data.length);
         
-        console.log('🔍 Filtered alerts:', filteredAlerts);
-        setAlerts(filteredAlerts);
+        if (append) {
+          // Append to existing alerts
+          setAlerts(prev => [...prev, ...convertedAlerts]);
+        } else {
+          // Replace alerts (new search/filter)
+          setAlerts(convertedAlerts);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch alerts:', error);
+      if (!append) {
       setAlerts([]);
     }
-  }, [apiBaseUrl, selectedPanels, selectedTimeframes]);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [apiBaseUrl, ALERTS_PER_PAGE]);
+
+  // Load more alerts function
+  const loadMoreAlerts = useCallback(() => {
+    if (!isLoadingMore && hasMoreAlerts) {
+      fetchAlerts(currentPage + 1, true);
+    }
+  }, [fetchAlerts, currentPage, isLoadingMore, hasMoreAlerts]);
 
   // SSE connection for real-time alerts
   useEffect(() => {
@@ -398,7 +415,7 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
         
         console.log('📨 Converted to frontend alert:', newAlert);
         setAlerts(prev => {
-          const updated = [newAlert, ...prev].slice(0, 100);
+          const updated = [newAlert, ...prev];
           console.log('📨 Updated alerts array length:', updated.length);
           return updated;
         });
@@ -449,7 +466,11 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
 
   // Load initial alerts
   useEffect(() => {
-    fetchAlerts();
+    setAlerts([]); // Clear existing alerts
+    setCurrentPage(1);
+    setTotalAlerts(0);
+    setHasMoreAlerts(true);
+    fetchAlerts(1, false);
   }, [apiBaseUrl]);
 
   // Check backend status on mount and periodically
@@ -459,12 +480,16 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
     return () => clearInterval(statusInterval);
   }, [checkBackendStatus]);
 
-  // Refetch alerts when filters change
+  // Refetch alerts when filters change (reset pagination)
   useEffect(() => {
     if (apiBaseUrl) {
-      fetchAlerts();
+      setAlerts([]); // Clear existing alerts
+      setCurrentPage(1);
+      setTotalAlerts(0);
+      setHasMoreAlerts(true);
+      fetchAlerts(1, false);
     }
-  }, [selectedPanels, selectedTimeframes]);
+  }, [selectedPanels, selectedTimeframes, selectedTimeFilter, selectedBaskets]);
 
   // Load saved default baskets on mount
   useEffect(() => {
@@ -1023,10 +1048,10 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                 <SimpleCustomBasket 
                   customBasketStocks={customBasketStocks} 
                   removeStockFromBasket={removeStockFromBasket} 
-                />
-                </div>
-              )}
+              />
             </div>
+            )}
+          </div>
           )}
 
 
@@ -1155,6 +1180,38 @@ export default function RecommendationDashboard({ apiBaseUrl = '' }) {
                       {filteredAlerts.map((alert) => (
                         <AlertCard key={alert.id} alert={alert} allAlerts={alerts} />
                       ))}
+                      
+                      {/* Load More Button */}
+                      {hasMoreAlerts && (
+                        <div className="text-center py-4">
+                          <button
+                            onClick={loadMoreAlerts}
+                            disabled={isLoadingMore}
+                            className={cn(
+                              "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                              isLoadingMore
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                            )}
+                          >
+                            {isLoadingMore ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                                Loading...
+                              </div>
+                            ) : (
+                              `Load More (${totalAlerts} loaded)`
+                            )}
+                          </button>
+                        </div>
+                      )}
+                      
+                      {/* End of results indicator */}
+                      {!hasMoreAlerts && filteredAlerts.length > 0 && (
+                        <div className="text-center text-gray-400 text-xs py-2">
+                          All {filteredAlerts.length} alerts loaded
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

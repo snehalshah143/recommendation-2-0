@@ -39,8 +39,8 @@ public class AlertService {
         sseEmitters.broadcast(dto);
     }
 
-    public List<AlertDto> getRecentAlerts(int limit) {
-        var page = PageRequest.of(0, Math.max(1, limit));
+    public List<AlertDto> getRecentAlerts(int limit, int offset) {
+        var page = PageRequest.of(offset / limit, Math.max(1, limit));
         return repo.findAllByOrderByAlertDateDesc(page)
                 .stream()
                 .map(this::toDto)

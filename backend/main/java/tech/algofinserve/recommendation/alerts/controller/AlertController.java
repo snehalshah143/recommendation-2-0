@@ -32,10 +32,11 @@ public class AlertController {
         return sseEmitters.createEmitter();
     }
 
-    // recent alerts
+    // recent alerts with pagination
     @GetMapping
-    public List<AlertDto> recent(@RequestParam(defaultValue = "50") int limit) {
-        return service.getRecentAlerts(limit);
+    public List<AlertDto> recent(@RequestParam(defaultValue = "50") int limit, 
+                                 @RequestParam(defaultValue = "0") int offset) {
+        return service.getRecentAlerts(limit, offset);
     }
 
     // history for a stock (days default 7)
