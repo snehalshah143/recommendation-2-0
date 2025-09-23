@@ -262,12 +262,82 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="w-[95vw] max-w-6xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col">
 
-        {/* Upper Frame - Stock Info, Order Button, Targets & Stoplosses, and Trend */}
-        <div className="p-4 bg-gray-50 rounded-lg mb-4 flex-shrink-0">
+        {/* Mobile Compact Header */}
+        <div className="sm:hidden p-2 bg-gray-50 rounded-lg mb-2 flex-shrink-0">
+          {/* Stock Info Row */}
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <h3 className="text-lg font-bold">{stock.symbol}</h3>
+              <p className="text-xs text-gray-600">LTP: ₹{ltp.toFixed(2)} • {getAlertDuration()}</p>
+            </div>
+            {stock.action === 'BUY' ? (
+              <Button
+                disabled
+                className="bg-green-600 text-white px-4 py-2 text-sm font-bold cursor-not-allowed"
+              >
+                Buy
+              </Button>
+            ) : (
+              <Button
+                disabled
+                className="bg-red-600 text-white px-4 py-2 text-sm font-bold cursor-not-allowed"
+              >
+                Sell
+              </Button>
+            )}
+          </div>
+          
+          {/* Timeframe Filter */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium">Duration:</span>
+            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+              <SelectTrigger className="w-24 h-7 text-xs px-2 py-1 bg-white border border-gray-300 rounded">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="w-32 bg-white border border-gray-300 rounded shadow-lg">
+                <SelectItem value="INTRADAY" className="px-2 py-1 text-xs">Intraday</SelectItem>
+                <SelectItem value="SHORTTERM" className="px-2 py-1 text-xs">Shortterm</SelectItem>
+                <SelectItem value="POSITIONAL" className="px-2 py-1 text-xs">Positional</SelectItem>
+                <SelectItem value="LONGTERM" className="px-2 py-1 text-xs">Longterm</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Targets and Stoplosses - Compact Grid */}
+          <div className="grid grid-cols-6 gap-1 text-xs">
+            <div className="text-center">
+              <div className="text-green-600 font-medium">T1</div>
+              <div className="font-mono">₹{targets.target1}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-green-600 font-medium">T2</div>
+              <div className="font-mono">₹{targets.target2}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-green-600 font-medium">T3</div>
+              <div className="font-mono">₹{targets.target3}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-red-600 font-medium">SL1</div>
+              <div className="font-mono">₹{targets.stoploss1}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-red-600 font-medium">SL2</div>
+              <div className="font-mono">₹{targets.stoploss2}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-red-600 font-medium">Hard</div>
+              <div className="font-mono">₹{targets.hardStoploss}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Header - Original Design */}
+        <div className="hidden sm:block p-4 bg-gray-50 rounded-lg mb-4 flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            {/* Left Side - Stock Info, Order Button, and Targets & Stoplosses */}
+            {/* Stock Info and Order Button */}
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
                 <div className="text-right">
@@ -361,7 +431,7 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
               </div>
             </div>
 
-            {/* Right Side - Trend Analysis */}
+            {/* Trend Analysis */}
             <div className="flex gap-4">
               {[
                 { name: 'Intraday', value: 'NA' },
@@ -525,7 +595,113 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
 
         {/* Middle and Bottom Frame - Combined Layout */}
         <div className="flex-1 overflow-y-auto min-h-0">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          {/* Mobile Layout - Stacked Cards */}
+          <div className="sm:hidden space-y-2">
+            {/* Alert History */}
+            <Card>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-sm">Alert History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-24 overflow-y-auto space-y-1">
+                  {stockAlerts.length === 0 ? (
+                    <p className="text-gray-500 text-xs">No alerts found</p>
+                  ) : (
+                    stockAlerts.slice(0, 3).map((alert, index) => (
+                      <div
+                        key={index}
+                        className={cn(
+                          "p-1.5 rounded text-xs border-l-2",
+                          alert.action === 'BUY' 
+                            ? "border-green-500 bg-green-50" 
+                            : "border-red-500 bg-red-50"
+                        )}
+                      >
+                        <div className="font-medium">
+                          {alert.action} @ ₹{alert.price?.toFixed(2) || '0.00'}
+                        </div>
+                        <div className="text-gray-600 text-xs">
+                          {new Date(alert.timestamp).toLocaleString('en-IN', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Price Action */}
+            <Card>
+              <CardHeader className="pb-1">
+                <CardTitle className="text-sm">Price Action</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="max-h-16 overflow-y-auto space-y-1">
+                  {priceActionAlerts.length > 0 ? (
+                    priceActionAlerts.slice(0, 3).map((alert, index) => (
+                      <div
+                        key={index}
+                        className="p-1 bg-blue-50 border-l-2 border-blue-500 rounded text-xs"
+                      >
+                        {alert}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-1 text-gray-500 text-xs text-center">
+                      NA
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Fundamentals and Technical - Side by Side */}
+            <div className="grid grid-cols-2 gap-2">
+              <Card>
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-sm">Fundamentals</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  {[
+                    { label: 'P/E', value: 'NA' },
+                    { label: 'ROE', value: 'NA' },
+                    { label: 'Market Cap', value: 'NA' }
+                  ].map((item) => (
+                    <div key={item.label} className="flex justify-between items-center py-0.5 text-xs">
+                      <span className="text-gray-600">{item.label}</span>
+                      <span className="font-semibold text-gray-500">{item.value}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-1">
+                  <CardTitle className="text-sm">Technical</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  {[
+                    { label: 'RSI', value: 'NA' },
+                    { label: 'MACD', value: 'NA' },
+                    { label: 'EMA 21', value: 'NA' }
+                  ].map((item) => (
+                    <div key={item.label} className="flex justify-between items-center py-0.5 text-xs">
+                      <span className="text-gray-600">{item.label}</span>
+                      <span className="font-semibold text-gray-500">{item.value}</span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Desktop Layout - Original Grid */}
+          <div className="hidden sm:grid grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Left Column - Alert History */}
             <Card className="lg:col-span-2">
               <CardHeader className="pb-2">
