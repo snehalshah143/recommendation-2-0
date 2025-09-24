@@ -39,10 +39,12 @@ public class AlertController {
         return service.getRecentAlerts(limit, offset);
     }
 
-    // history for a stock (days default 7)
+    // history for a stock (days default 0 for all alerts, limit default 50)
     @GetMapping("/stock/{code}")
-    public List<AlertDto> history(@PathVariable String code, @RequestParam(defaultValue = "7") int days) {
-        return service.getStockHistory(code, days);
+    public List<AlertDto> history(@PathVariable String code, 
+                                 @RequestParam(defaultValue = "0") int days,
+                                 @RequestParam(defaultValue = "50") int limit) {
+        return service.getStockHistory(code, days, limit);
     }
 
     // recalculate since days for all existing alerts

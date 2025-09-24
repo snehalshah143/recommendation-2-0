@@ -53,10 +53,21 @@ public class AlertService {
                 .collect(Collectors.toList());
     }
 
-    public List<AlertDto> getStockHistory(String code, int days) {
-        Instant after = Instant.now().minusSeconds(days * 24L * 3600L);
-        return repo.findByStockCodeAndAlertDateAfterOrderByAlertDateDesc(code, after)
-                .stream()
+    public List<AlertDto> getStockHistory(String code, int days, int limit) {
+        List<AlertEntity> alerts;
+        
+        // If days is 0 or negative, return all alerts for the stock
+        if (days <= 0) {
+            alerts = repo.findByStockCodeOrderByAlertDateDesc(code);
+        } else {
+            // Otherwise, filter by days
+            Instant after = Instant.now().minusSeconds(days * 24L * 3600L);
+            alerts = repo.findByStockCodeAndAlertDateAfterOrderByAlertDateDesc(code, after);
+        }
+        
+        // Apply limit and convert to DTOs
+        return alerts.stream()
+                .limit(limit)
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

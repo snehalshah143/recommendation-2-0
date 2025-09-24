@@ -28,6 +28,8 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
   });
   const [selectedTimeframe, setSelectedTimeframe] = useState('INTRADAY');
   const [ltp, setLtp] = useState(0);
+  const [stockAlerts, setStockAlerts] = useState([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(false);
 
   // Reset form state when modal closes
   useEffect(() => {
@@ -60,6 +62,58 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
       setLtp(basePrice);
     }
   }, [stock]);
+
+  // Fetch all alerts for the specific stock when modal opens
+  const fetchStockAlerts = async (stockSymbol) => {
+    if (!stockSymbol) return;
+    
+    try {
+      setLoadingAlerts(true);
+      const url = apiBaseUrl && apiBaseUrl.trim() !== '' 
+        ? `${apiBaseUrl}/api/alerts/stock/${stockSymbol}?days=0&limit=50` 
+        : `/api/alerts/stock/${stockSymbol}?days=0&limit=50`;
+      
+      console.log(`🔍 Fetching alerts for stock ${stockSymbol}:`, url);
+      const response = await fetch(url);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`✅ Fetched ${data.length} alerts for ${stockSymbol}:`, data);
+        
+        // Convert backend AlertDto to frontend format and sort by date (latest first)
+        const convertedAlerts = data
+          .map(alert => ({
+            id: `${alert.stockCode}_${alert.alertDate}`,
+            action: alert.buySell || 'BUY',
+            symbol: alert.stockCode,
+            price: parseFloat(alert.price),
+            source: alert.scanName,
+            timestamp: alert.alertDate,
+            sinceDays: alert.sinceDays || alert.since_days || 0
+          }))
+          .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)); // Latest first
+        
+        setStockAlerts(convertedAlerts);
+      } else {
+        console.error(`❌ Failed to fetch alerts for ${stockSymbol}:`, response.status);
+        setStockAlerts([]);
+      }
+    } catch (error) {
+      console.error(`❌ Error fetching alerts for ${stockSymbol}:`, error);
+      setStockAlerts([]);
+    } finally {
+      setLoadingAlerts(false);
+    }
+  };
+
+  // Fetch alerts when modal opens and stock is available
+  useEffect(() => {
+    if (isOpen && stock?.symbol) {
+      fetchStockAlerts(stock.symbol);
+    } else {
+      setStockAlerts([]);
+    }
+  }, [isOpen, stock?.symbol, apiBaseUrl]);
 
 
   // Get targets and stoplosses based on trade duration and alert price
@@ -231,11 +285,6 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
   // No dummy data - show NA when no real data available
   const priceActionAlerts = [];
 
-  // Filter alerts for this stock (latest first)
-  const stockAlerts = alerts
-    .filter(alert => alert.symbol === stock?.symbol)
-    .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
   // Calculate alert duration based on current consecutive streak
   const getAlertDuration = () => {
     if (!stock) return "No stock data";
@@ -349,24 +398,24 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
                 </div>
                 {stock.action === 'BUY' ? (
                   <div className="flex flex-col items-center">
-                    <Button
+                  <Button
                       disabled
                       onClick={() => {}} // Prevent form opening
                       className="bg-green-600 text-white px-8 py-3 text-lg font-bold cursor-not-allowed"
-                    >
-                      Buy
-                    </Button>
+                  >
+                    Buy
+                  </Button>
                     <span className="text-xs text-gray-500 mt-1">Coming Soon</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center">
-                    <Button
+                  <Button
                       disabled
                       onClick={() => {}} // Prevent form opening
                       className="bg-red-600 text-white px-8 py-3 text-lg font-bold cursor-not-allowed"
-                    >
-                      Sell
-                    </Button>
+                  >
+                    Sell
+                  </Button>
                     <span className="text-xs text-gray-500 mt-1">Coming Soon</span>
                   </div>
                 )}
@@ -442,7 +491,7 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
                 <div key={trend.name} className="text-center p-2 bg-white rounded border">
                   <div className="text-xs text-gray-600 mb-1">{trend.name}</div>
                   <div className="text-sm font-semibold text-gray-500">
-                    {trend.value}
+                      {trend.value}
                   </div>
                 </div>
               ))}
@@ -604,7 +653,11 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
               </CardHeader>
               <CardContent>
                 <div className="max-h-24 overflow-y-auto space-y-1">
-                  {stockAlerts.length === 0 ? (
+                  {loadingAlerts ? (
+                    <div className="flex items-center justify-center py-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : stockAlerts.length === 0 ? (
                     <p className="text-gray-500 text-xs">No alerts found</p>
                   ) : (
                     stockAlerts.slice(0, 3).map((alert, index) => (
@@ -709,7 +762,11 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
               </CardHeader>
               <CardContent>
                 <div className="max-h-48 overflow-y-auto space-y-2">
-                  {stockAlerts.length === 0 ? (
+                  {loadingAlerts ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : stockAlerts.length === 0 ? (
                     <p className="text-gray-500 text-xs">No alerts found</p>
                   ) : (
                     stockAlerts.map((alert, index) => (
@@ -749,12 +806,12 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
                 <div className="max-h-48 overflow-y-auto space-y-1">
                   {priceActionAlerts.length > 0 ? (
                     priceActionAlerts.slice(0, 6).map((alert, index) => (
-                      <div
-                        key={index}
-                        className="p-1.5 bg-blue-50 border-l-2 border-blue-500 rounded text-xs"
-                      >
-                        {alert}
-                      </div>
+                    <div
+                      key={index}
+                      className="p-1.5 bg-blue-50 border-l-2 border-blue-500 rounded text-xs"
+                    >
+                      {alert}
+                    </div>
                     ))
                   ) : (
                     <div className="p-1.5 text-gray-500 text-xs text-center">
@@ -804,8 +861,8 @@ const StockDetailModal = ({ isOpen, onClose, stock, alerts = [], apiBaseUrl = ''
                   <div key={item.label} className="flex justify-between items-center py-1 text-xs">
                     <span className="text-gray-600">{item.label}</span>
                     <span className="font-semibold text-gray-500">
-                      {item.value}
-                    </span>
+                        {item.value}
+                      </span>
                   </div>
                 ))}
               </CardContent>

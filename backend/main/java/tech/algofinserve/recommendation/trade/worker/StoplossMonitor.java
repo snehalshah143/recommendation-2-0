@@ -24,15 +24,15 @@ public class StoplossMonitor {
 
     private final TradeRecommendationService tradeRecommendationService;
     private final MarketDataAdapter marketDataAdapter;
-
+    private final boolean start=false;
     /**
      * Monitor stoploss levels every 30 seconds during market hours
      * This runs every 30 seconds but will only process during market hours
      */
-    @Scheduled(fixedRate = 30000) // 30 seconds
+   // @Scheduled(fixedRate = 30000) // 30 seconds
     @Transactional
     public void monitorStoplossLevels() {
-        if (!isMarketHours()) {
+        if (!isMarketHours() && !start) {
             log.debug("Market is closed, skipping stoploss monitoring");
             return;
         }
