@@ -53,4 +53,10 @@ public class AlertController {
         service.recalculateAllSinceDays();
         return ResponseEntity.ok("Since days recalculated for all alerts");
     }
+    
+    // debug endpoint for specific stock
+    @GetMapping("/debug/{code}")
+    public ResponseEntity<String> debugStock(@PathVariable String code) {
+        return ResponseEntity.ok(service.debugSinceDaysCalculation(code));
+    }
 }

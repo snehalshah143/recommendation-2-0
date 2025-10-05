@@ -45,3 +45,7 @@ public class TradeRecommendationConfig {
         private Integer marketEndMinute = 30;
     }
 }
+
+
+
+

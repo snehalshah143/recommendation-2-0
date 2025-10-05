@@ -89,3 +89,7 @@ public class Ticker implements Serializable {
     return Objects.hash(token, stockSymbol, instrumentType, exchSeg, sector, categorization);
   }
 }
+
+
+
+

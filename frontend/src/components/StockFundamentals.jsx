@@ -137,3 +137,7 @@ const StockFundamentals = ({ symbol, baseUrl = '' }) => {
 };
 
 export default StockFundamentals;
+
+
+
+

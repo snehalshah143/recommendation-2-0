@@ -295,3 +295,7 @@ abstract class TechnicalDataBase implements Serializable {
             bbMiddle202);
     }
 }
+
+
+
+

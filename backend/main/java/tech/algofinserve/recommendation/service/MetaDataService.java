@@ -9,3 +9,7 @@ public interface MetaDataService {
     
     String getTokenForSymbol(String symbol, ExchSeg exchSeg);
 }
+
+
+
+

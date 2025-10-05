@@ -6,3 +6,7 @@ package tech.algofinserve.recommendation.trade.entity;
 public enum TradeDuration {
     INTRADAY, POSITIONAL, SHORTTERM, LONGTERM
 }
+
+
+
+

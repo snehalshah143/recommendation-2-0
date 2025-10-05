@@ -6,3 +6,7 @@ package tech.algofinserve.recommendation.trade.entity;
 public enum CloseReason {
     STOPLOSS_HIT, OPPOSITE_SIGNAL, MANUAL
 }
+
+
+
+

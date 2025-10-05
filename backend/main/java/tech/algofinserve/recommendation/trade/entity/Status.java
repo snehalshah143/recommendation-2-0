@@ -6,3 +6,7 @@ package tech.algofinserve.recommendation.trade.entity;
 public enum Status {
     ACTIVE, CLOSED
 }
+
+
+
+

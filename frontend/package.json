@@ -4,12 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
+    "build:fast": "vite build --mode production",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "vitest --run",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "install:fast": "npm ci --prefer-offline --no-audit --no-fund"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",

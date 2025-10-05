@@ -31,12 +31,15 @@ public class AlertService {
         e.setAlertDate(dto.getAlertDate());
         e.setScanName(dto.getScanName());
         e.setBuySell(dto.getBuySell());
+        e.setSinceDays(0); // Will be calculated later
         
-        // Calculate since days before saving
-        int sinceDays = calculateSinceDays(dto.getStockCode(), dto.getBuySell());
-        e.setSinceDays(sinceDays);
+        // Save the alert first
+        AlertEntity savedAlert = repo.save(e);
         
-        repo.save(e);
+        // Now calculate since days including this alert and update
+        int sinceDays = calculateSinceDaysIncludingCurrent(dto.getStockCode(), dto.getBuySell(), dto.getAlertDate());
+        savedAlert.setSinceDays(sinceDays);
+        repo.save(savedAlert);
 
         // send telegram
       //  telegram.send(formatMessage(dto));
@@ -116,21 +119,21 @@ public class AlertService {
             alertsByDate.computeIfAbsent(alertDate, k -> new ArrayList<>()).add(alert);
         }
         
-        // Find consecutive days with the current action (from most recent backwards)
-        List<LocalDate> sortedDates = alertsByDate.keySet().stream()
-                .sorted(Collections.reverseOrder())
-                .collect(Collectors.toList());
-        
+        // Start from today and check consecutive calendar days backwards
+        LocalDate today = LocalDate.now();
         int consecutiveDays = 0;
+        LocalDate checkDate = today;
         
-        for (LocalDate date : sortedDates) {
-            List<AlertEntity> dayAlerts = alertsByDate.get(date);
+        // Check consecutive days starting from today
+        while (alertsByDate.containsKey(checkDate)) {
+            List<AlertEntity> dayAlerts = alertsByDate.get(checkDate);
             boolean hasCurrentAction = dayAlerts.stream().anyMatch(alert -> alert.getBuySell() == currentAction);
             boolean hasDifferentAction = dayAlerts.stream().anyMatch(alert -> alert.getBuySell() != currentAction);
             
             if (hasCurrentAction && !hasDifferentAction) {
                 // Day has only the current action (no mixed actions)
                 consecutiveDays++;
+                checkDate = checkDate.minusDays(1); // Check previous day
             } else if (hasDifferentAction) {
                 // Day has different action - this breaks the consecutive streak
                 break;
@@ -140,7 +143,116 @@ public class AlertService {
             }
         }
         
-        // Return consecutive days - 1
+        // Return consecutive days - 1 (so 1 day = since 0, 2 days = since 1, etc.)
         return Math.max(0, consecutiveDays - 1);
+    }
+
+    /**
+     * Calculate since days including the current alert being processed
+     */
+    private int calculateSinceDaysIncludingCurrent(String stockCode, tech.algofinserve.recommendation.constants.BuySell currentAction, Instant currentAlertDate) {
+        // Get all alerts for this stock, sorted by alert_date (newest first)
+        List<AlertEntity> stockAlerts = repo.findByStockCodeOrderByAlertDateDesc(stockCode);
+        
+        // Convert current alert date to LocalDate
+        LocalDate currentDate = currentAlertDate.atZone(ZoneId.systemDefault()).toLocalDate();
+        
+        // Group alerts by date (YYYY-MM-DD format)
+        Map<LocalDate, List<AlertEntity>> alertsByDate = new HashMap<>();
+        for (AlertEntity alert : stockAlerts) {
+            LocalDate alertDate = alert.getAlertDate().atZone(ZoneId.systemDefault()).toLocalDate();
+            alertsByDate.computeIfAbsent(alertDate, k -> new ArrayList<>()).add(alert);
+        }
+        
+        // Count consecutive days starting from current date backwards
+        int consecutiveDays = 0;
+        LocalDate checkDate = currentDate;
+        
+        // Check if current date has the action (it should, since we just added it)
+        List<AlertEntity> todayAlerts = alertsByDate.get(checkDate);
+        if (todayAlerts != null) {
+            boolean hasTodayAction = todayAlerts.stream().anyMatch(alert -> alert.getBuySell() == currentAction);
+            boolean hasTodayDifferentAction = todayAlerts.stream().anyMatch(alert -> alert.getBuySell() != currentAction);
+            
+            if (hasTodayAction && !hasTodayDifferentAction) {
+                consecutiveDays = 1; // Today counts as 1 day
+            } else if (hasTodayAction && hasTodayDifferentAction) {
+                return 0; // Mixed actions today, so since 0 days
+            }
+        }
+        
+        // Check previous days
+        checkDate = checkDate.minusDays(1);
+        while (alertsByDate.containsKey(checkDate)) {
+            List<AlertEntity> dayAlerts = alertsByDate.get(checkDate);
+            boolean hasCurrentAction = dayAlerts.stream().anyMatch(alert -> alert.getBuySell() == currentAction);
+            boolean hasDifferentAction = dayAlerts.stream().anyMatch(alert -> alert.getBuySell() != currentAction);
+            
+            if (hasCurrentAction && !hasDifferentAction) {
+                consecutiveDays++;
+                checkDate = checkDate.minusDays(1);
+            } else {
+                break; // Different action or no action breaks the streak
+            }
+        }
+        
+        // Return consecutive days - 1 (since 1 day = since 0 days)
+        return Math.max(0, consecutiveDays - 1);
+    }
+    
+    public String debugSinceDaysCalculation(String stockCode) {
+        List<AlertEntity> stockAlerts = repo.findByStockCodeOrderByAlertDateDesc(stockCode);
+        StringBuilder debug = new StringBuilder();
+        
+        debug.append("=== DEBUG FOR ").append(stockCode).append(" ===\n");
+        debug.append("Total alerts: ").append(stockAlerts.size()).append("\n\n");
+        
+        if (stockAlerts.isEmpty()) {
+            debug.append("No alerts found for this stock\n");
+            return debug.toString();
+        }
+        
+        // Show all alerts with their dates and actions
+        debug.append("All alerts (newest first):\n");
+        for (int i = 0; i < stockAlerts.size(); i++) {
+            AlertEntity alert = stockAlerts.get(i);
+            LocalDate alertDate = alert.getAlertDate().atZone(ZoneId.systemDefault()).toLocalDate();
+            debug.append(String.format("%d. %s - %s - %s (sinceDays: %d)\n", 
+                i+1, alertDate, alert.getBuySell(), alert.getScanName(), alert.getSinceDays()));
+        }
+        
+        // Group by date and show the logic
+        Map<LocalDate, List<AlertEntity>> alertsByDate = new HashMap<>();
+        for (AlertEntity alert : stockAlerts) {
+            LocalDate alertDate = alert.getAlertDate().atZone(ZoneId.systemDefault()).toLocalDate();
+            alertsByDate.computeIfAbsent(alertDate, k -> new ArrayList<>()).add(alert);
+        }
+        
+        debug.append("\nGrouped by date:\n");
+        List<LocalDate> sortedDates = alertsByDate.keySet().stream()
+                .sorted(Collections.reverseOrder())
+                .collect(Collectors.toList());
+                
+        for (LocalDate date : sortedDates) {
+            List<AlertEntity> dayAlerts = alertsByDate.get(date);
+            debug.append(String.format("%s: ", date));
+            for (AlertEntity alert : dayAlerts) {
+                debug.append(alert.getBuySell()).append(" ");
+            }
+            debug.append("\n");
+        }
+        
+        // Calculate for BUY action as example
+        if (!stockAlerts.isEmpty()) {
+            debug.append("\nCalculating for BUY action:\n");
+            int buyResult = calculateSinceDays(stockCode, tech.algofinserve.recommendation.constants.BuySell.BUY);
+            debug.append("BUY sinceDays result: ").append(buyResult).append("\n");
+            
+            debug.append("\nCalculating for SELL action:\n");
+            int sellResult = calculateSinceDays(stockCode, tech.algofinserve.recommendation.constants.BuySell.SELL);
+            debug.append("SELL sinceDays result: ").append(sellResult).append("\n");
+        }
+        
+        return debug.toString();
     }
 }

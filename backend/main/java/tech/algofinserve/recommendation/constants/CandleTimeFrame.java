@@ -36,3 +36,7 @@ public enum CandleTimeFrame {
     throw new IllegalArgumentException(value);
   }
 }
+
+
+
+

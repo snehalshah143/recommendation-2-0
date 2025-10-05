@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Since Days</title>
+</head>
+<body>
+    <h2>Test Since Days Calculation</h2>
+    
+    <button onclick="recalculateSinceDays()">Recalculate All Since Days</button>
+    <button onclick="testHSCL()">Test HSCL</button>
+    <button onclick="testAGI()">Test AGI</button>
+    <div id="recalcResult"></div>
+    
+    <br><br>
+    
+    <input type="text" id="stockCode" placeholder="Enter stock code (e.g., HSCL)" value="HSCL">
+    <button onclick="checkStockAlerts()">Check Stock Alerts</button>
+    <div id="stockResult"></div>
+
+    <script>
+        async function recalculateSinceDays() {
+            try {
+                const response = await fetch('http://localhost:8082/api/alerts/recalculate-since-days', {
+                    method: 'POST'
+                });
+                const result = await response.text();
+                document.getElementById('recalcResult').innerHTML = '<p style="color: green;">✅ ' + result + '</p>';
+            } catch (error) {
+                document.getElementById('recalcResult').innerHTML = '<p style="color: red;">❌ Error: ' + error.message + '</p>';
+            }
+        }
+        
+        async function testHSCL() {
+            document.getElementById('stockCode').value = 'HSCL';
+            await checkStockAlerts();
+        }
+        
+        async function testAGI() {
+            document.getElementById('stockCode').value = 'AGI';
+            await checkStockAlerts();
+        }
+        
+        async function checkStockAlerts() {
+            const stockCode = document.getElementById('stockCode').value;
+            try {
+                const response = await fetch(`http://localhost:8082/api/alerts/stock/${stockCode}?days=0&limit=10`);
+                const alerts = await response.json();
+                
+                let html = `<h3>Alerts for ${stockCode}:</h3>`;
+                if (alerts.length === 0) {
+                    html += '<p>No alerts found</p>';
+                } else {
+                    html += '<table border="1" style="border-collapse: collapse; width: 100%;">';
+                    html += '<tr><th>Date</th><th>Action</th><th>Price</th><th>Since Days</th><th>Scan Name</th></tr>';
+                    alerts.forEach(alert => {
+                        const date = new Date(alert.alertDate).toLocaleString();
+                        html += `<tr>
+                            <td>${date}</td>
+                            <td>${alert.buySell}</td>
+                            <td>₹${alert.price}</td>
+                            <td>${alert.sinceDays || 0}</td>
+                            <td>${alert.scanName}</td>
+                        </tr>`;
+                    });
+                    html += '</table>';
+                }
+                document.getElementById('stockResult').innerHTML = html;
+            } catch (error) {
+                document.getElementById('stockResult').innerHTML = '<p style="color: red;">❌ Error: ' + error.message + '</p>';
+            }
+        }
+    </script>
+</body>
+</html>

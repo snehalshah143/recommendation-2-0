@@ -72,3 +72,7 @@ public interface TradeRecommendationRepository extends JpaRepository<TradeRecomm
            "AND tr.stoploss1 IS NOT NULL")
     List<TradeRecommendation> findAllActiveRecommendationsForMonitoring();
 }
+
+
+
+
