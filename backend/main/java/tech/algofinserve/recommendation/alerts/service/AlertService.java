@@ -1,7 +1,10 @@
 package tech.algofinserve.recommendation.alerts.service;
-
+import org.springframework.context.event.EventListener;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.algofinserve.recommendation.alerts.dto.AlertDto;
@@ -14,6 +17,8 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +27,28 @@ public class AlertService {
     @Autowired private AlertRepository repo;
     @Autowired  private SseEmitters sseEmitters;
 
+    @Autowired @Qualifier("dbQueue") private BlockingQueue<AlertDto> dbQueue;
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void startDbQueueConsumer() {
+        System.out.println("Starting DB Queue Consumer for Alerts...");
+        new Thread(this::consumeDbQueue).start();
+    }
+
+    @Async("taskExecutorDB") // optional: can use a TaskExecutor bean
+    public void consumeDbQueue() {
+        while (true) {
+            try {
+             //   AlertDto dto = dbQueue.take(); // Blocks until available
+             //   processIncomingAlert(dto);
+                List<AlertDto> dtoList= takeBatch(dbQueue,10);
+                processIncomingAlertInBatch(dtoList);
+            } catch (Exception e) {
+                System.err.println("Error processing dbQueue alert: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Transactional
     public void processIncomingAlert(AlertDto dto) {
@@ -47,6 +74,56 @@ public class AlertService {
         // broadcast via SSE
         sseEmitters.broadcast(dto);
     }
+
+    @Transactional
+    public void processIncomingAlertInBatch(List<AlertDto> dtoList) {
+        List<AlertEntity> alertEntityList=new ArrayList<>();
+        for(AlertDto dto:dtoList){
+            AlertEntity e = new AlertEntity();
+            e.setStockCode(dto.getStockCode());
+            e.setPrice(dto.getPrice());
+            e.setAlertDate(dto.getAlertDate());
+            e.setScanName(dto.getScanName());
+            e.setBuySell(dto.getBuySell());
+            e.setSinceDays(0); // Will be calculated later
+            alertEntityList.add(e);
+        }
+
+        // Save the alert first
+        List<AlertEntity> savedAlertList = repo.saveAll(alertEntityList);
+
+        // Now calculate since days including this alert and update
+   //     int sinceDays = calculateSinceDaysIncludingCurrent(dto.getStockCode(), dto.getBuySell(), dto.getAlertDate());
+   //     savedAlert.setSinceDays(sinceDays);
+   //     repo.save(savedAlert);
+
+        // send telegram
+        //  telegram.send(formatMessage(dto));
+
+        // broadcast via SSE
+        dtoList.forEach(p->sseEmitters.broadcast(p));
+    }
+
+
+    public static List<AlertDto>  takeBatch(BlockingQueue<AlertDto> queue, int maxAlerts) throws InterruptedException {
+        StringBuilder sb = new StringBuilder();
+List<AlertDto> alerts =new ArrayList<>();
+        // Take at least one message (blocking)
+        AlertDto first = queue.take();
+        alerts.add(first);
+
+        // Now try to take the remaining messages without blocking
+        for (int i = 1; i < maxAlerts; i++) {
+            AlertDto dto = queue.poll(10, TimeUnit.MILLISECONDS); // small timeout to avoid busy wait
+            if (dto == null) break;
+            alerts.add(dto); // append empty line between messages
+
+        }
+
+        return alerts;
+    }
+
+
 
     public List<AlertDto> getRecentAlerts(int limit, int offset) {
         var page = PageRequest.of(offset / limit, Math.max(1, limit));

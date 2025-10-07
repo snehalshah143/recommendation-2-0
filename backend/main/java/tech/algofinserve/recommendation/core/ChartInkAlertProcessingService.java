@@ -31,6 +31,11 @@ public class ChartInkAlertProcessingService {
 
   Format formatter_DDMMYYYY = new SimpleDateFormat("yyyy-MM-dd");
   @Autowired private AlertService alertService;
+
+  @Autowired
+  @Qualifier("dbQueue")
+  BlockingQueue<AlertDto> dbQueue;
+
   @Autowired
   @Qualifier("messageQueueBuy")
   BlockingQueue<String> messageQueueBuy;
@@ -105,7 +110,8 @@ public class ChartInkAlertProcessingService {
             stockAlert.getStockCode(), stockAlertList);
       }
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.BUY);
-      alertService.processIncomingAlert(alertDto);
+    //  alertService.processIncomingAlert(alertDto);
+      dbQueue.put(alertDto);
 
       if (ChartInkAlertFactory.buyStockAlertListForScanNameMap.containsKey(
           stockAlert.getScanName())) {
@@ -150,8 +156,8 @@ public class ChartInkAlertProcessingService {
       }
 
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.BUY);
-      alertService.processIncomingAlert(alertDto);
-
+    //  alertService.processIncomingAlert(alertDto);
+      dbQueue.put(alertDto);
       if (ChartInkAlertFactory.buyStockAlertListForScanNameMap.containsKey(
           stockAlert.getScanName())) {
         ChartInkAlertFactory.buyStockAlertListForScanNameMap
@@ -195,8 +201,8 @@ public class ChartInkAlertProcessingService {
       }
 
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.SELL);
-      alertService.processIncomingAlert(alertDto);
-
+     // alertService.processIncomingAlert(alertDto);
+      dbQueue.put(alertDto);
       if (ChartInkAlertFactory.sellStockAlertListForScanNameMap.containsKey(
           stockAlert.getScanName())) {
         ChartInkAlertFactory.sellStockAlertListForScanNameMap
@@ -240,8 +246,8 @@ public class ChartInkAlertProcessingService {
       }
 
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.SELL);
-      alertService.processIncomingAlert(alertDto);
-
+   //   alertService.processIncomingAlert(alertDto);
+      dbQueue.put(alertDto);
       if (ChartInkAlertFactory.sellStockAlertListForScanNameMap.containsKey(
           stockAlert.getScanName())) {
         ChartInkAlertFactory.sellStockAlertListForScanNameMap

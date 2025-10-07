@@ -7,11 +7,18 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import tech.algofinserve.recommendation.alerts.dto.AlertDto;
 import tech.algofinserve.recommendation.model.domain.Alert;
 
 @Configuration
 @EnableAsync
 public class AsyncConfiguration {
+
+  @Bean(name = "dbQueue")
+  public BlockingQueue<AlertDto> dbQueue() {
+    return new LinkedBlockingQueue<>(1000);
+  }
+
   @Bean(name = "messageQueueBuy")
   public BlockingQueue<String> messageQueueBuy() {
     return new LinkedBlockingQueue<>(200);
@@ -86,4 +93,17 @@ public class AsyncConfiguration {
     executor.initialize();
     return executor;
   }
+
+  @Bean(name = "taskExecutorDB")
+  public Executor taskExecutorDB() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(2);
+    executor.setMaxPoolSize(4);
+    executor.setQueueCapacity(1000);
+    executor.setThreadNamePrefix("DBExecutor-");
+    executor.initialize();
+    return executor;
+  }
+
+
 }
