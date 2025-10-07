@@ -1,11 +1,12 @@
 package tech.algofinserve.recommendation.messaging;
 
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class MessagingService implements Runnable {
   BlockingQueue<String> messageQueue;
-  TelegramMessaging telegramMessaging = new TelegramMessaging();
+//  TelegramMessaging telegramMessaging = new TelegramMessaging();
   Function sendMessage;
 
   public MessagingService(BlockingQueue<String> messageQueue, Function sendMessage)
@@ -15,10 +16,29 @@ public class MessagingService implements Runnable {
     }
     this.messageQueue = messageQueue;
     this.sendMessage = sendMessage;
+    System.out.println("MessagingService Initialised ...");
   }
-  //    @Async("taskExecutor")
+/*  //    @Async("taskExecutor")
   public void sendMessage(String message) throws InterruptedException {
     telegramMessaging.sendMessage2(message);
+  }*/
+
+  public static String takeBatch(BlockingQueue<String> queue, int maxMessages) throws InterruptedException {
+    StringBuilder sb = new StringBuilder();
+
+    // Take at least one message (blocking)
+    String first = queue.take();
+    sb.append(first);
+
+    // Now try to take the remaining messages without blocking
+    for (int i = 1; i < maxMessages; i++) {
+      String msg = queue.poll(10, TimeUnit.MILLISECONDS); // small timeout to avoid busy wait
+      if (msg == null) break;
+      sb.append("\n\n").append(msg); // append empty line between messages
+
+    }
+
+    return sb.toString();
   }
 
   @Override
@@ -27,6 +47,7 @@ public class MessagingService implements Runnable {
     try {
       while (true) {
         String message = messageQueue.take();
+     //   String message = takeBatch(messageQueue, 10);
         sendMessage.apply(message);
         //  sendMessage(message);
       }

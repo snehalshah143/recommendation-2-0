@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import tech.algofinserve.recommendation.model.domain.Alert;
 
 @Configuration
 @EnableAsync
@@ -29,6 +30,17 @@ public class AsyncConfiguration {
   @Bean(name = "messageQueueSellEOD")
   public BlockingQueue<String> messageQueueSellEOD() {
     return new LinkedBlockingQueue<>(200);
+  }
+
+
+  @Bean("buyAlertQueue")
+  public BlockingQueue<Alert> buyAlertQueue() {
+    return new LinkedBlockingQueue<>(1000);
+  }
+
+  @Bean("sellAlertQueue")
+  public BlockingQueue<Alert> sellAlertQueue() {
+    return new LinkedBlockingQueue<>(1000);
   }
 
   @Bean(name = "taskExecutorBuy")

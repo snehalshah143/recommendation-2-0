@@ -2,12 +2,40 @@ package tech.algofinserve.recommendation.messaging;
 
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import okhttp3.*;
 
 public class TelegramMessaging {
   // static String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
   // static String CHAT_ID = "873305334";
-  String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
+
+
+  String ideas2InvestBotTelegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
+  String ideas2Invest2BotTelegramToken = "8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU";
+  String ideas2Invest3BotTelegramToken = "8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE";
+
+  private final static List<String> telegramTokensList=new ArrayList<>();
+
+  private final AtomicInteger index = new AtomicInteger(0);
+  {
+    telegramTokensList.add(ideas2InvestBotTelegramToken);
+    telegramTokensList.add(ideas2Invest2BotTelegramToken);
+    telegramTokensList.add(ideas2Invest3BotTelegramToken);
+  }
+  public TelegramMessaging() {
+    System.out.println("TelegramMessaging Initialised ...");
+
+  }
+
+  public String getTelegramToken() {
+    // atomically get the current index and increment it modulo list size
+    int currentIndex = index.getAndUpdate(i -> (i + 1) % telegramTokensList.size());
+    return telegramTokensList.get(currentIndex);
+  }
+
   // String chatId = "@shreejitrades";
 
   /*  public static void main(String[] args) {
@@ -37,7 +65,8 @@ public class TelegramMessaging {
 
     Request request =
         new Request.Builder()
-            .url("https://api.telegram.org/bot" + telegramToken + "/getUpdates")
+    //        .url("https://api.telegram.org/bot" + ideas2InvestBotTelegramToken + "/getUpdates")
+                .url("https://api.telegram.org/bot" + getTelegramToken() + "/getUpdates")
             .build();
 
     try {
@@ -77,7 +106,9 @@ public class TelegramMessaging {
     String chatId = "@ideastoinvest";
     // String chatId = "@shreejitrades";
     try {
-
+      String telegramToken=getTelegramToken();
+      System.out.println("Telegram Token Used::"+telegramToken);
+     // URL url = new URL("https://api.telegram.org/bot" + ideas2InvestBotTelegramToken + "/sendMessage");
       URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("POST");
@@ -98,7 +129,11 @@ public class TelegramMessaging {
         wr.close();
       }
 
-      System.out.println(conn.getResponseCode());
+      String responseCode= String.valueOf(conn.getResponseCode());
+      System.out.println(responseCode);
+      if(responseCode.equals("429")){
+        Thread.sleep(1000);
+      }
 
       /*      System.out.println(
       "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());*/
@@ -121,8 +156,11 @@ public class TelegramMessaging {
     // String chatId = "@ideastoinvest";
     String chatId = "@shreejitrades";
     try {
-
+String telegramToken=getTelegramToken();
+      System.out.println("Telegram Token Used::"+telegramToken);
+    //  URL url = new URL("https://api.telegram.org/bot" + ideas2InvestBotTelegramToken + "/sendMessage");
       URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
+
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
       conn.setRequestMethod("POST");
       conn.setDoOutput(true);
@@ -141,9 +179,11 @@ public class TelegramMessaging {
         wr.flush();
         wr.close();
       }
-
-      System.out.println(conn.getResponseCode());
-
+String responseCode= String.valueOf(conn.getResponseCode());
+      System.out.println(responseCode);
+if(responseCode.equals("429")){
+  Thread.sleep(1000);
+}
       /*      System.out.println(
       "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());*/
       conn.disconnect();

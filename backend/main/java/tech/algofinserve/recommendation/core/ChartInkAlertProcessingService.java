@@ -46,18 +46,23 @@ public class ChartInkAlertProcessingService {
   @Qualifier("messageQueueSellEOD")
   BlockingQueue<String> messageQueueSellEOD;
 
+  TelegramMessaging telegramMessagingNormal;
+  TelegramMessaging telegramMessagingEOD;
+
   Function<String, Boolean> sendMessageNormal =
       p -> {
-        return new TelegramMessaging().sendMessage2(p);
+        return telegramMessagingNormal.sendMessage2(p);
       };
 
   Function<String, Boolean> sendMessageEOD =
       p -> {
-        return new TelegramMessaging().sendMessageEOD(p);
+        return telegramMessagingEOD.sendMessageEOD(p);
       };
 
   @EventListener(ApplicationReadyEvent.class)
   public void startMessagingService() throws Exception {
+    telegramMessagingNormal=new TelegramMessaging();
+    telegramMessagingEOD=new TelegramMessaging();
     new Thread(new MessagingService(messageQueueBuy, sendMessageNormal)).start();
     new Thread(new MessagingService(messageQueueSell, sendMessageNormal)).start();
     new Thread(new MessagingService(messageQueueBuyEOD, sendMessageEOD)).start();

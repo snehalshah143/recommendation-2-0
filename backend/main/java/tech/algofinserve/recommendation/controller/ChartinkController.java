@@ -1,6 +1,7 @@
 package tech.algofinserve.recommendation.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -8,8 +9,18 @@ import org.springframework.web.bind.annotation.RestController;
 import tech.algofinserve.recommendation.core.ChartInkAlertProcessingService;
 import tech.algofinserve.recommendation.model.domain.Alert;
 
+import java.util.concurrent.BlockingQueue;
+
 @RestController
 public class ChartinkController {
+
+  @Autowired
+  @Qualifier("buyAlertQueue")
+  private BlockingQueue<Alert> buyAlertQueue;
+
+  @Autowired
+  @Qualifier("sellAlertQueue")
+  private BlockingQueue<Alert> sellAlertQueue;
 
   @Autowired private ChartInkAlertProcessingService alertProcessing;
 
@@ -17,7 +28,9 @@ public class ChartinkController {
   public void alertsReceivedBuy(@RequestBody Alert alert) {
     System.out.println(alert.toString());
     try {
-      alertProcessing.processBuyAlert(alert);
+    //  alertProcessing.processBuyAlert(alert);
+      buyAlertQueue.put(alert);  // push to queue
+      //  return ResponseEntity.ok("Buy Alert Queued Successfully");
 
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
@@ -30,8 +43,8 @@ public class ChartinkController {
   public void alertsReceivedBuyEOD(@RequestBody Alert alert) {
     System.out.println(alert.toString());
     try {
-      alertProcessing.processBuyAlertEOD(alert);
-
+    //  alertProcessing.processBuyAlertEOD(alert);
+      sellAlertQueue.put(alert);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
