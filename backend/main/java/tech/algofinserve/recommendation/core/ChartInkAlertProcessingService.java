@@ -20,6 +20,7 @@ import tech.algofinserve.recommendation.constants.BuySell;
 import tech.algofinserve.recommendation.helper.StockAlertOutputHelper;
 import tech.algofinserve.recommendation.messaging.MessagingService;
 import tech.algofinserve.recommendation.messaging.TelegramMessaging;
+import tech.algofinserve.recommendation.messaging.TelegramSenderPool;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
 import tech.algofinserve.recommendation.model.domain.StockAlertOutput;
@@ -46,23 +47,27 @@ public class ChartInkAlertProcessingService {
   @Qualifier("messageQueueSellEOD")
   BlockingQueue<String> messageQueueSellEOD;
 
-  TelegramMessaging telegramMessagingNormal;
-  TelegramMessaging telegramMessagingEOD;
+  @Autowired
+  TelegramSenderPool telegramSenderPool;
+//  TelegramMessaging telegramMessagingNormal;
+//  TelegramMessaging telegramMessagingEOD;
 
   Function<String, Boolean> sendMessageNormal =
       p -> {
-        return telegramMessagingNormal.sendMessage2(p);
+     //   return telegramMessagingNormal.sendMessage2(p);
+        return telegramSenderPool.sendAndWait("@shreejitrades",p,5000);
       };
 
   Function<String, Boolean> sendMessageEOD =
       p -> {
-        return telegramMessagingEOD.sendMessageEOD(p);
+   //     return telegramMessagingEOD.sendMessageEOD(p);
+        return telegramSenderPool.sendAndWait("@ideastoinvest",p,5000);
       };
 
   @EventListener(ApplicationReadyEvent.class)
   public void startMessagingService() throws Exception {
-    telegramMessagingNormal=new TelegramMessaging();
-    telegramMessagingEOD=new TelegramMessaging();
+//    telegramMessagingNormal=new TelegramMessaging();
+ //   telegramMessagingEOD=new TelegramMessaging();
     new Thread(new MessagingService(messageQueueBuy, sendMessageNormal)).start();
     new Thread(new MessagingService(messageQueueSell, sendMessageNormal)).start();
     new Thread(new MessagingService(messageQueueBuyEOD, sendMessageEOD)).start();
