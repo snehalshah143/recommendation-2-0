@@ -60,13 +60,13 @@ public class ChartInkAlertProcessingService {
   Function<String, Boolean> sendMessageNormal =
       p -> {
      //   return telegramMessagingNormal.sendMessage2(p);
-        return telegramSenderPool.sendAndWait("@shreejitrades",p,5000);
+        return telegramSenderPool.sendAndWait("@shreejitrades",p,10000);
       };
 
   Function<String, Boolean> sendMessageEOD =
       p -> {
    //     return telegramMessagingEOD.sendMessageEOD(p);
-        return telegramSenderPool.sendAndWait("@ideastoinvest",p,5000);
+        return telegramSenderPool.sendAndWait("@ideastoinvest",p,10000);
       };
 
   @EventListener(ApplicationReadyEvent.class)

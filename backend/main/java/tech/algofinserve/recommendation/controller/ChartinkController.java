@@ -43,8 +43,8 @@ public class ChartinkController {
   public void alertsReceivedBuyEOD(@RequestBody Alert alert) {
     System.out.println(alert.toString());
     try {
-    //  alertProcessing.processBuyAlertEOD(alert);
-      sellAlertQueue.put(alert);
+      alertProcessing.processBuyAlertEOD(alert);
+
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
@@ -57,8 +57,8 @@ public class ChartinkController {
     // Adding Log
     System.out.println(alert.toString());
     try {
-      alertProcessing.processSellAlert(alert);
-
+   //   alertProcessing.processSellAlert(alert);
+      sellAlertQueue.put(alert);
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
