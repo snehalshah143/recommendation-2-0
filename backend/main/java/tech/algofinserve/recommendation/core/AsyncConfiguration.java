@@ -21,12 +21,12 @@ public class AsyncConfiguration {
 
   @Bean(name = "messageQueueBuy")
   public BlockingQueue<String> messageQueueBuy() {
-    return new LinkedBlockingQueue<>(200);
+    return new LinkedBlockingQueue<>(1000);
   }
 
   @Bean(name = "messageQueueSell")
   public BlockingQueue<String> messageQueueSell() {
-    return new LinkedBlockingQueue<>(200);
+    return new LinkedBlockingQueue<>(1000);
   }
 
   @Bean(name = "messageQueueBuyEOD")
@@ -53,9 +53,9 @@ public class AsyncConfiguration {
   @Bean(name = "taskExecutorBuy")
   public Executor getAsyncExecutorBuy() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(2);
-    executor.setMaxPoolSize(2);
-    executor.setQueueCapacity(200);
+    executor.setCorePoolSize(5);
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(1000);
     executor.setThreadNamePrefix("ThreadPool-BUY-");
     executor.initialize();
     return executor;
@@ -75,9 +75,9 @@ public class AsyncConfiguration {
   @Bean(name = "taskExecutorSell")
   public Executor getAsyncExecutorSell() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-    executor.setCorePoolSize(2);
-    executor.setMaxPoolSize(2);
-    executor.setQueueCapacity(200);
+    executor.setCorePoolSize(5);
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(1000);
     executor.setThreadNamePrefix("ThreadPool-SELL-");
     executor.initialize();
     return executor;
