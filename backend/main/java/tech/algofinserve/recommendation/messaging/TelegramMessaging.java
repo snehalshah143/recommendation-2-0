@@ -25,7 +25,8 @@ public class TelegramMessaging {
   );
 
   private static final AtomicInteger TOKEN_INDEX = new AtomicInteger(0);
-
+  private static final AtomicInteger successCount = new AtomicInteger(0);
+  private static final AtomicInteger failedCount = new AtomicInteger(0);
   private String defaultChatId = "@ideastoinvest"; // e.g. "@shreejitrades" or channel id
 
   public TelegramMessaging() {
@@ -217,11 +218,18 @@ if(responseCode.equals("429")){
         wr.close();
       }
       String responseCode= String.valueOf(conn.getResponseCode());
-      System.out.println(responseCode);
-      if(responseCode.equals("429")){
+
+      if(responseCode.equals("200")){
+          successCount.getAndUpdate(i -> (i + 1));
+      }else{
         Thread.sleep(1000);
         sendMessageRetry(chatId,text);
       }
+      System.out.println(responseCode+": success count :"+successCount +" :failed :"+failedCount);
+/*      if(responseCode.equals("429")){
+        Thread.sleep(1000);
+        sendMessageRetry(chatId,text);
+      }*/
       conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();
@@ -252,10 +260,18 @@ if(responseCode.equals("429")){
         wr.close();
       }
       String responseCode= String.valueOf(conn.getResponseCode());
-      System.out.println(responseCode);
-      if(responseCode.equals("429")){
-        System.out.println("Retry Failed For"+text);
+      if(responseCode.equals("200")){
+        successCount.getAndUpdate(i -> (i + 1));
+      }else{
+        failedCount.getAndUpdate(i -> (i + 1));
+          System.out.println("Retry Failed For"+text);
       }
+      System.out.println("Retry::"+ responseCode+": success count :"+successCount +" :failed :"+failedCount);
+
+/*      if(responseCode.equals("429")){
+
+        System.out.println("Retry Failed For"+text);
+      }*/
       conn.disconnect();
     } catch (Exception e) {
       e.printStackTrace();

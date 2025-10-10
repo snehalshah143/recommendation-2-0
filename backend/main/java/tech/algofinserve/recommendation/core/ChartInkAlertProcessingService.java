@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -31,7 +32,7 @@ public class ChartInkAlertProcessingService {
 
   Format formatter_DDMMYYYY = new SimpleDateFormat("yyyy-MM-dd");
   @Autowired private AlertService alertService;
-
+  private static final AtomicInteger alertCount = new AtomicInteger(0);
   @Autowired
   @Qualifier("dbQueue")
   BlockingQueue<AlertDto> dbQueue;
@@ -87,6 +88,7 @@ public class ChartInkAlertProcessingService {
 
     String[] stocksName = alert.getStocks().split(",");
     String[] prices = alert.getTriggerPrices().split(",");
+    alertCount.getAndUpdate(i -> (i + stocksName.length ));
 
     for (int i = 0; i < stocksName.length; i++) {
 
@@ -178,7 +180,7 @@ public class ChartInkAlertProcessingService {
 
     String[] stocksName = alert.getStocks().split(",");
     String[] prices = alert.getTriggerPrices().split(",");
-
+    alertCount.getAndUpdate(i -> (i + stocksName.length ));
     for (int i = 0; i < stocksName.length; i++) {
 
       StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.SELL);
@@ -339,7 +341,7 @@ public class ChartInkAlertProcessingService {
       System.out.println("Data Cleared For ::" + fileDate);
 
       System.out.println("Email Sent For Date ::" + fileDate);
-
+      System.out.println("Total Alerts Today ::" + alertCount);
       return true;
     } catch (Exception e) {
       System.out.println("Issue while Generating Report.");
