@@ -1,5 +1,5 @@
 # Use official OpenJDK 11 image
-FROM openjdk:11-jdk-slim
+FROM amazoncorretto:11
 
 # Set working directory inside the container
 WORKDIR /app
