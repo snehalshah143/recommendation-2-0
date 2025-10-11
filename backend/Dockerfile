@@ -5,6 +5,18 @@ WORKDIR /app
 
 # Copy pom.xml first to leverage caching
 COPY pom.xml .
+COPY libs/ ./libs/
+
+# Install Maven (Amazon Corretto image does not include Maven)
+RUN yum install -y maven
+
+# Install local JAR in Maven
+RUN mvn install:install-file \
+    -Dfile=libs/smartapi-java-2.3.0.jar \
+    -DgroupId=com.angelbroking.smartapi \
+    -DartifactId=smartapi-java \
+    -Dversion=2.3.0 \
+    -Dpackaging=jar
 
 # Download dependencies offline
 RUN mvn dependency:go-offline -B
