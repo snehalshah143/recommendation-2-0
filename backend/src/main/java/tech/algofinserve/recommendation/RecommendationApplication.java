@@ -1,5 +1,7 @@
 package tech.algofinserve.recommendation;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,6 +11,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import tech.algofinserve.recommendation.core.ChartInkAlertProcessingService;
 
 //@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class})
 @SpringBootApplication
@@ -18,7 +21,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 //@ComponentScan({"tech.algofinserve"})
 public class RecommendationApplication {
-  private static ConfigurableApplicationContext context;
+    private static final Logger logger = LoggerFactory.getLogger(RecommendationApplication.class);
+
+    private static ConfigurableApplicationContext context;
 
   public static void main(String[] args) {
     context = SpringApplication.run(RecommendationApplication.class, args);
@@ -26,8 +31,8 @@ public class RecommendationApplication {
 
   public static void restart() {
     ApplicationArguments args = context.getBean(ApplicationArguments.class);
-    System.out.println("Existing Server getting stopped.");
-
+   // System.out.println("Existing Server getting stopped.");
+      logger.info("Existing Server getting stopped.");
     Thread thread =
         new Thread(
             () -> {
@@ -38,6 +43,7 @@ public class RecommendationApplication {
 
     thread.setDaemon(false);
     thread.start();
-    System.out.println("Server Restarted...");
+    //System.out.println("Server Restarted...");
+      logger.info("Server Restarted...");
   }
 }

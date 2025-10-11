@@ -1,5 +1,7 @@
 package tech.algofinserve.recommendation.messaging;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -13,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class MessagingServiceNew implements Runnable {
-
+    private static final Logger logger = LoggerFactory.getLogger(MessagingServiceNew.class);
     private final BlockingQueue<String> messageQueue;
     private final String chatId;
  //   private TelegramMessagingNew telegramMessaging;
@@ -34,7 +36,7 @@ public class MessagingServiceNew implements Runnable {
         this.chatId=chatId;
         this.telegramSenderPool=telegramSenderPool;
      //   this.telegramMessaging=telegramMessaging;
-        System.out.println("💬 MessagingService initialized for chat: " + chatId);
+        logger.info("💬 MessagingService initialized for chat: " + chatId);
 
     }
 

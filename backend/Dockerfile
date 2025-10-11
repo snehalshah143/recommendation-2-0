@@ -21,6 +21,8 @@ COPY sqlliteadvisory.db ./sqlliteadvisory.db
 # Copy the Spring Boot JAR
 COPY target/recommendation-0.0.1-SNAPSHOT.jar app.jar
 
+RUN mkdir -p /app/reports
+RUN mkdir -p /app/logs
 # Expose port 8080 for Spring Boot
 EXPOSE 8082
 

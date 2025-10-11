@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -20,7 +21,6 @@ import tech.algofinserve.recommendation.cache.ChartInkAlertFactory;
 import tech.algofinserve.recommendation.constants.BuySell;
 import tech.algofinserve.recommendation.helper.StockAlertOutputHelper;
 import tech.algofinserve.recommendation.messaging.MessagingServiceNew;
-
 import tech.algofinserve.recommendation.messaging.TelegramSenderPool;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
@@ -29,6 +29,8 @@ import tech.algofinserve.recommendation.report.ReportGenerator;
 
 @Service
 public class ChartInkAlertProcessingService {
+
+  private static final Logger logger = LoggerFactory.getLogger(ChartInkAlertProcessingService.class);
 
   Format formatter_DDMMYYYY = new SimpleDateFormat("yyyy-MM-dd");
   @Autowired private AlertService alertService;
@@ -86,7 +88,8 @@ public class ChartInkAlertProcessingService {
     new Thread(new MessagingServiceNew(messageQueueSellEOD, eodChatId,telegramSenderPool)).start();
     //    new Thread(new MessagingService(messageQueueBuy)).start();
     //    new Thread(new MessagingService(messageQueueSell)).start();
-    System.out.println("Messaging Service Started.....");
+   // System.out.println("Messaging Service Started.....");
+    logger.info("Messaging Service Started.....");
   }
 
   @Async("taskExecutorBuy")
@@ -331,26 +334,32 @@ public class ChartInkAlertProcessingService {
   }
 
   public boolean generateStockAlertOutputReport() {
-    String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
+    String stockAlertReportFileName = "reports\\chartink_report_DDMMYYYY.csv";
+    //String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
     try {
       Date date = new Date();
 
       String fileDate = formatter_DDMMYYYY.format(date);
       stockAlertReportFileName = stockAlertReportFileName.replace("DDMMYYYY", fileDate);
-      System.out.println("stockAlertReportFileName ::" + stockAlertReportFileName);
+     // System.out.println("stockAlertReportFileName ::" + stockAlertReportFileName);
+      logger.info("stockAlertReportFileName ::" + stockAlertReportFileName);
       ReportGenerator reportGenerator = new ReportGenerator();
       List<StockAlertOutput> stockRankOutputList =
           StockAlertOutputHelper.buildStockAlertOutputList();
       reportGenerator.generateStockRankReport(stockAlertReportFileName, stockRankOutputList);
-      System.out.println("Report Generated ::" + stockAlertReportFileName);
+    //  System.out.println("Report Generated ::" + stockAlertReportFileName);
+      logger.info("Report Generated ::" + stockAlertReportFileName);
       clearPreviousDayData();
-      System.out.println("Data Cleared For ::" + fileDate);
-
-      System.out.println("Email Sent For Date ::" + fileDate);
-      System.out.println("Total Alerts Today ::" + alertCount);
+     // System.out.println("Data Cleared For ::" + fileDate);
+      logger.info("Data Cleared For ::" + fileDate);
+     // System.out.println("Email Sent For Date ::" + fileDate);
+     // System.out.println("Total Alerts Today ::" + alertCount);
+      logger.info("Email Sent For Date ::" + fileDate);
+      logger.info("Total Alerts Today ::" + alertCount);
       return true;
     } catch (Exception e) {
-      System.out.println("Issue while Generating Report.");
+    //  System.out.println("Issue while Generating Report.");
+      logger.info("Issue while Generating Report.");
       return false;
     }
   }

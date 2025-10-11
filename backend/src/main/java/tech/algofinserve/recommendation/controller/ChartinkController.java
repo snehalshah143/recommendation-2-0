@@ -1,5 +1,7 @@
 package tech.algofinserve.recommendation.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,8 @@ import java.util.concurrent.BlockingQueue;
 @RestController
 public class ChartinkController {
 
+  private static final Logger logger = LoggerFactory.getLogger(ChartinkController.class);
+
   @Autowired
   @Qualifier("buyAlertQueue")
   private BlockingQueue<Alert> buyAlertQueue;
@@ -26,7 +30,8 @@ public class ChartinkController {
 
   @PostMapping(path = "/BuyAlert", consumes = "application/json")
   public void alertsReceivedBuy(@RequestBody Alert alert) {
-    System.out.println(alert.toString());
+  //  System.out.println(alert.toString());
+    logger.info(alert.toString());
     try {
     //  alertProcessing.processBuyAlert(alert);
       buyAlertQueue.put(alert);  // push to queue
@@ -41,7 +46,8 @@ public class ChartinkController {
 
   @PostMapping(path = "/BuyAlertEOD", consumes = "application/json")
   public void alertsReceivedBuyEOD(@RequestBody Alert alert) {
-    System.out.println(alert.toString());
+    //System.out.println(alert.toString());
+    logger.info(alert.toString());
     try {
       alertProcessing.processBuyAlertEOD(alert);
 
@@ -55,7 +61,8 @@ public class ChartinkController {
   @PostMapping(path = "/SellAlert", consumes = "application/json")
   public void alertsReceivedSell(@RequestBody Alert alert) {
     // Adding Log
-    System.out.println(alert.toString());
+    logger.info(alert.toString());
+    //System.out.println(alert.toString());
     try {
    //   alertProcessing.processSellAlert(alert);
       sellAlertQueue.put(alert);
@@ -69,7 +76,8 @@ public class ChartinkController {
   @PostMapping(path = "/SellAlertEOD", consumes = "application/json")
   public void alertsReceivedSellEOD(@RequestBody Alert alert) {
     // Adding Log
-    System.out.println(alert.toString());
+    logger.info(alert.toString());
+    //System.out.println(alert.toString());
     try {
       alertProcessing.processSellAlertEOD(alert);
 

@@ -1,10 +1,14 @@
 package tech.algofinserve.recommendation.messaging;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class MessagingService implements Runnable {
+  private static final Logger logger = LoggerFactory.getLogger(MessagingService.class);
   BlockingQueue<String> messageQueue;
 //  TelegramMessaging telegramMessaging = new TelegramMessaging();
   Function sendMessage;
@@ -16,7 +20,7 @@ public class MessagingService implements Runnable {
     }
     this.messageQueue = messageQueue;
     this.sendMessage = sendMessage;
-    System.out.println("MessagingService Initialised ...");
+    logger.info("MessagingService Initialised ...");
   }
 /*  //    @Async("taskExecutor")
   public void sendMessage(String message) throws InterruptedException {

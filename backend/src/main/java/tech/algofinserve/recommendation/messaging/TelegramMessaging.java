@@ -7,10 +7,14 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tech.algofinserve.recommendation.core.ChartInkAlertProcessingService;
 
 public class TelegramMessaging {
   // static String telegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
   // static String CHAT_ID = "873305334";
+  private static final Logger logger = LoggerFactory.getLogger(TelegramMessaging.class);
 
 
   static String ideas2InvestBotTelegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
@@ -75,7 +79,7 @@ public class TelegramMessaging {
     try {
       Response response = client.newCall(request).execute();
       String responseBody = response.body().string();
-      System.out.println(responseBody);
+      logger.info(responseBody);
 
       // Parse the response to get chat IDs
       // Example: Extract chat ID from responseBody and use it
@@ -110,7 +114,7 @@ public class TelegramMessaging {
     // String chatId = "@shreejitrades";
     try {
       String telegramToken=getTelegramToken();
-      System.out.println("Telegram Token Used::"+telegramToken);
+      logger.info("Telegram Token Used::"+telegramToken);
      // URL url = new URL("https://api.telegram.org/bot" + ideas2InvestBotTelegramToken + "/sendMessage");
       URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -133,12 +137,12 @@ public class TelegramMessaging {
       }
 
       String responseCode= String.valueOf(conn.getResponseCode());
-      System.out.println(responseCode);
+      logger.info(responseCode);
       if(responseCode.equals("429")){
         Thread.sleep(1000);
       }
 
-      /*      System.out.println(
+      /*      logger.info(
       "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());*/
       conn.disconnect();
     } catch (Exception e) {
@@ -160,7 +164,7 @@ public class TelegramMessaging {
     String chatId = "@shreejitrades";
     try {
 String telegramToken=getTelegramToken();
-      System.out.println("Telegram Token Used::"+telegramToken);
+      logger.info("Telegram Token Used::"+telegramToken);
     //  URL url = new URL("https://api.telegram.org/bot" + ideas2InvestBotTelegramToken + "/sendMessage");
       URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
 
@@ -183,11 +187,11 @@ String telegramToken=getTelegramToken();
         wr.close();
       }
 String responseCode= String.valueOf(conn.getResponseCode());
-      System.out.println(responseCode);
+      logger.info(responseCode);
 if(responseCode.equals("429")){
   Thread.sleep(1000);
 }
-      /*      System.out.println(
+      /*      logger.info(
       "Thread ::" + Thread.currentThread().getName() + "::" + conn.getResponseCode());*/
       conn.disconnect();
     } catch (Exception e) {
@@ -201,7 +205,7 @@ if(responseCode.equals("429")){
 
     try {
       String telegramToken=getTelegramToken();
-    //  System.out.println("Telegram Token Used::"+telegramToken);
+    //  logger.info("Telegram Token Used::"+telegramToken);
       URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
 
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -225,7 +229,7 @@ if(responseCode.equals("429")){
         Thread.sleep(1000);
         sendMessageRetry(chatId,text);
       }
-      System.out.println(responseCode+": success count :"+successCount +" :failed :"+failedCount);
+      logger.info(responseCode+": success count :"+successCount +" :failed :"+failedCount);
 /*      if(responseCode.equals("429")){
         Thread.sleep(1000);
         sendMessageRetry(chatId,text);
@@ -241,9 +245,9 @@ if(responseCode.equals("429")){
   public boolean sendMessageRetry(String chatId,String text) {
 
     try {
-      System.out.println("Retry For"+text);
+      logger.info("Retry For"+text);
       String telegramToken=getTelegramToken();
-  //    System.out.println("Telegram Token Used::"+telegramToken);
+  //    logger.info("Telegram Token Used::"+telegramToken);
       URL url = new URL("https://api.telegram.org/bot" + telegramToken + "/sendMessage");
 
       HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -264,13 +268,13 @@ if(responseCode.equals("429")){
         successCount.getAndUpdate(i -> (i + 1));
       }else{
         failedCount.getAndUpdate(i -> (i + 1));
-          System.out.println("Retry Failed For"+text);
+          logger.info("Retry Failed For"+text);
       }
-      System.out.println("Retry::"+ responseCode+": success count :"+successCount +" :failed :"+failedCount);
+      logger.info("Retry::"+ responseCode+": success count :"+successCount +" :failed :"+failedCount);
 
 /*      if(responseCode.equals("429")){
 
-        System.out.println("Retry Failed For"+text);
+        logger.info("Retry Failed For"+text);
       }*/
       conn.disconnect();
     } catch (Exception e) {
@@ -286,7 +290,7 @@ if(responseCode.equals("429")){
   }
 
   /*  protected void finalize() throws Throwable {
-    System.out.println("Finalized Method Executed.");
+    logger.info("Finalized Method Executed.");
     conn.disconnect();
   }*/
   /*
@@ -321,10 +325,10 @@ if(responseCode.equals("429")){
   /*            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
   String output;
   while ((output = br.readLine()) != null) {
-      System.out.println(output);
+      logger.info(output);
   }*/
   /*
-      System.out.println(conn.getResponseCode());
+      logger.info(conn.getResponseCode());
 
       conn.disconnect();
     } catch (Exception e) {
