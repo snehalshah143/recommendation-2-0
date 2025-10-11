@@ -1,25 +1,33 @@
-# Use official OpenJDK 11 image
-FROM amazoncorretto:11
+# Stage 1: Build the app using Maven
+FROM maven:3.9.4-amazoncorretto-11 AS build
 
-# Set working directory inside the container
 WORKDIR /app
 
-# Copy pom.xml and download dependencies first (caching layer)
+# Copy pom.xml first to leverage caching
 COPY pom.xml .
-RUN apt-get update && apt-get install -y maven
+
+# Download dependencies offline
 RUN mvn dependency:go-offline -B
 
-# Copy the entire backend source code
-COPY . .
+# Copy the source code
+COPY src ./src
 
-# Build the application
+# Package the jar
 RUN mvn clean package -DskipTests
 
-# SQLite DB (if you want it inside container)
-# COPY sqlliteadvisory.db .
+# Stage 2: Run the app
+FROM amazoncorretto:11
 
-# Expose port
+WORKDIR /app
+
+# Copy the jar from build stage
+COPY --from=build /app/target/recommendation-0.0.1-SNAPSHOT.jar app.jar
+
+# Copy SQLite DB into the container
+COPY sqlliteadvisory.db ./sqlliteadvisory.db
+
+# Expose the port
 EXPOSE 8082
 
-# Run the jar
-CMD ["java", "-jar", "target/recommendation-0.0.1-SNAPSHOT.jar"]
+# Start Spring Boot
+ENTRYPOINT ["java", "-jar", "app.jar"]
