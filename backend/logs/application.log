@@ -1,0 +1,197 @@
+2025-10-12 00:32:28.455  INFO 1372 --- [main] t.a.r.RecommendationApplication          : Starting RecommendationApplication using Java 11.0.23 on Shreeji with PID 1372 (D:\SnehalImp\git\recommendation-2-0\backend\target\classes started by sneha in D:\SnehalImp\git\recommendation-2-0\backend)
+2025-10-12 00:32:28.458 DEBUG 1372 --- [main] t.a.r.RecommendationApplication          : Running with Spring Boot v2.6.1, Spring v5.3.13
+2025-10-12 00:32:28.458  INFO 1372 --- [main] t.a.r.RecommendationApplication          : No active profile set, falling back to default profiles: default
+2025-10-12 00:32:29.170  INFO 1372 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-12 00:32:29.368  INFO 1372 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 167 ms. Found 2 JPA repository interfaces.
+2025-10-12 00:32:30.171  INFO 1372 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2025-10-12 00:32:30.180  INFO 1372 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-12 00:32:30.180  INFO 1372 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.55]
+2025-10-12 00:32:30.307  INFO 1372 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-12 00:32:30.307  INFO 1372 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1774 ms
+2025-10-12 00:32:30.402  INFO 1372 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-12 00:32:30.511  INFO 1372 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-12 00:32:30.640  INFO 1372 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-12 00:32:30.705  INFO 1372 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-10-12 00:32:30.864  INFO 1372 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-10-12 00:32:30.996  INFO 1372 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: tech.algofinserve.recommendation.common.datastore.SQLiteDialect
+2025-10-12 00:32:31.584  INFO 1372 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-10-12 00:32:31.597  INFO 1372 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-12 00:32:32.699  WARN 1372 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-12 00:32:33.141  INFO 1372 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2025-10-12 00:32:33.155  INFO 1372 --- [main] t.a.r.RecommendationApplication          : Started RecommendationApplication in 5.238 seconds (JVM running for 5.753)
+2025-10-12 00:32:33.173  INFO 1372 --- [main] t.a.r.c.ChartInkAlertProcessingService   : Messaging Service Started.....
+2025-10-12 01:07:56.570  INFO 14452 --- [main] t.a.r.RecommendationApplication          : Starting RecommendationApplication using Java 11.0.23 on Shreeji with PID 14452 (D:\SnehalImp\git\recommendation-2-0\backend\target\classes started by sneha in D:\SnehalImp\git\recommendation-2-0\backend)
+2025-10-12 01:07:56.572 DEBUG 14452 --- [main] t.a.r.RecommendationApplication          : Running with Spring Boot v2.6.1, Spring v5.3.13
+2025-10-12 01:07:56.573  INFO 14452 --- [main] t.a.r.RecommendationApplication          : No active profile set, falling back to default profiles: default
+2025-10-12 01:07:57.307  INFO 14452 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-12 01:07:57.483  INFO 14452 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 165 ms. Found 2 JPA repository interfaces.
+2025-10-12 01:07:58.286  INFO 14452 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2025-10-12 01:07:58.294  INFO 14452 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-12 01:07:58.294  INFO 14452 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.55]
+2025-10-12 01:07:58.412  INFO 14452 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-12 01:07:58.412  INFO 14452 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1763 ms
+2025-10-12 01:07:58.502  INFO 14452 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-12 01:07:58.595  INFO 14452 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-12 01:07:58.716  INFO 14452 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-12 01:07:58.773  INFO 14452 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-10-12 01:07:58.927  INFO 14452 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-10-12 01:07:59.099  INFO 14452 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: tech.algofinserve.recommendation.common.datastore.SQLiteDialect
+2025-10-12 01:07:59.698  INFO 14452 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-10-12 01:07:59.712  INFO 14452 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-12 01:08:00.797  WARN 14452 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-12 01:08:01.250  INFO 14452 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2025-10-12 01:08:01.266  INFO 14452 --- [main] t.a.r.RecommendationApplication          : Started RecommendationApplication in 5.218 seconds (JVM running for 5.771)
+2025-10-12 01:08:01.287  INFO 14452 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @shreejitrades
+2025-10-12 01:08:01.289  INFO 14452 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @shreejitrades
+2025-10-12 01:08:01.289  INFO 14452 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @ideastoinvest
+2025-10-12 01:08:01.289  INFO 14452 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @ideastoinvest
+2025-10-12 01:08:01.290  INFO 14452 --- [main] t.a.r.c.ChartInkAlertProcessingService   : Messaging Service Started.....
+2025-10-12 01:08:09.004  INFO 14452 --- [http-nio-8082-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-12 01:08:09.004  INFO 14452 --- [http-nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-12 01:08:09.005  INFO 14452 --- [http-nio-8082-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-10-12 01:08:19.608  INFO 14452 --- [http-nio-8082-exec-4] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:08:20.614  INFO 14452 --- [http-nio-8082-exec-5] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:08:21.833  INFO 14452 --- [http-nio-8082-exec-6] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:09:28.799  INFO 14452 --- [http-nio-8082-exec-2] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:15:42.188  INFO 13916 --- [main] t.a.r.RecommendationApplication          : Starting RecommendationApplication using Java 11.0.23 on Shreeji with PID 13916 (D:\SnehalImp\git\recommendation-2-0\backend\target\classes started by sneha in D:\SnehalImp\git\recommendation-2-0\backend)
+2025-10-12 01:15:42.190 DEBUG 13916 --- [main] t.a.r.RecommendationApplication          : Running with Spring Boot v2.6.1, Spring v5.3.13
+2025-10-12 01:15:42.190  INFO 13916 --- [main] t.a.r.RecommendationApplication          : No active profile set, falling back to default profiles: default
+2025-10-12 01:15:42.924  INFO 13916 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-12 01:15:43.097  INFO 13916 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 160 ms. Found 2 JPA repository interfaces.
+2025-10-12 01:15:43.897  INFO 13916 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2025-10-12 01:15:43.910  INFO 13916 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-12 01:15:43.910  INFO 13916 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.55]
+2025-10-12 01:15:44.048  INFO 13916 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-12 01:15:44.048  INFO 13916 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1781 ms
+2025-10-12 01:15:44.154  INFO 13916 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-12 01:15:44.260  INFO 13916 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-12 01:15:44.413  INFO 13916 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-12 01:15:44.477  INFO 13916 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-10-12 01:15:44.647  INFO 13916 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-10-12 01:15:44.776  INFO 13916 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: tech.algofinserve.recommendation.common.datastore.SQLiteDialect
+2025-10-12 01:15:45.348  INFO 13916 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-10-12 01:15:45.362  INFO 13916 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-12 01:15:46.346  WARN 13916 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-12 01:15:46.758  INFO 13916 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2025-10-12 01:15:46.770  INFO 13916 --- [main] t.a.r.RecommendationApplication          : Started RecommendationApplication in 5.071 seconds (JVM running for 5.583)
+2025-10-12 01:15:46.787  INFO 13916 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @shreejitrades
+2025-10-12 01:15:46.788  INFO 13916 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @shreejitrades
+2025-10-12 01:15:46.788  INFO 13916 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @ideastoinvest
+2025-10-12 01:15:46.789  INFO 13916 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @ideastoinvest
+2025-10-12 01:15:46.789  INFO 13916 --- [main] t.a.r.c.ChartInkAlertProcessingService   : Messaging Service Started.....
+2025-10-12 01:15:56.943  INFO 13916 --- [http-nio-8082-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-12 01:15:56.944  INFO 13916 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-12 01:15:56.945  INFO 13916 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 0 ms
+2025-10-12 01:15:57.058  INFO 13916 --- [http-nio-8082-exec-2] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:15:57.084  INFO 13916 --- [pool-2-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8
+2025-10-12 01:15:57.134  INFO 13916 --- [pool-5-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU
+2025-10-12 01:15:57.195  INFO 13916 --- [pool-8-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE
+2025-10-12 01:15:57.255  INFO 13916 --- [pool-11-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8
+2025-10-12 01:15:57.319  INFO 13916 --- [pool-14-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU
+2025-10-12 01:15:57.381  INFO 13916 --- [pool-17-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE
+2025-10-12 01:15:57.444  INFO 13916 --- [pool-20-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8
+2025-10-12 01:15:57.505  INFO 13916 --- [pool-23-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU
+2025-10-12 01:15:58.170  INFO 13916 --- [http-nio-8082-exec-3] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:15:58.174  INFO 13916 --- [pool-26-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE
+2025-10-12 01:15:58.234  INFO 13916 --- [pool-29-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8
+2025-10-12 01:15:58.296  INFO 13916 --- [pool-32-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU
+2025-10-12 01:15:58.358  INFO 13916 --- [pool-35-thread-1] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE
+2025-10-12 01:15:58.420  INFO 13916 --- [pool-2-thread-2] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8
+2025-10-12 01:15:58.443  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:58.443  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:58.451  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:58.467  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :3 :failed :0
+2025-10-12 01:15:58.468  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :3 :failed :0
+2025-10-12 01:15:58.468  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :3 :failed :0
+2025-10-12 01:15:58.481  INFO 13916 --- [pool-5-thread-2] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU
+2025-10-12 01:15:58.544  INFO 13916 --- [pool-8-thread-2] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE
+2025-10-12 01:15:58.606  INFO 13916 --- [pool-11-thread-2] t.a.r.messaging.TelegramMessagingNew     : Telegram Token Used::6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8
+2025-10-12 01:15:58.639  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:58.640  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :4 :failed :0
+2025-10-12 01:15:58.661  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:58.662  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :5 :failed :0
+2025-10-12 01:15:59.261  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:59.261  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :6 :failed :0
+2025-10-12 01:15:59.261  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:59.261  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :7 :failed :0
+2025-10-12 01:15:59.304  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:59.304  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:59.304  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :8 :failed :0
+2025-10-12 01:15:59.304  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :9 :failed :0
+2025-10-12 01:15:59.391  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:59.391  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :10 :failed :0
+2025-10-12 01:15:59.693  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:15:59.694  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :11 :failed :0
+2025-10-12 01:16:00.054  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:00.055  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :12 :failed :0
+2025-10-12 01:16:00.055  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:00.055  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :13 :failed :0
+2025-10-12 01:16:00.098  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:00.098  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:00.099  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :14 :failed :0
+2025-10-12 01:16:00.099  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :15 :failed :0
+2025-10-12 01:16:03.383  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:03.384  INFO 13916 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :16 :failed :0
+2025-10-12 01:16:31.386  INFO 25912 --- [main] t.a.r.RecommendationApplication          : Starting RecommendationApplication using Java 11.0.23 on Shreeji with PID 25912 (D:\SnehalImp\git\recommendation-2-0\backend\target\classes started by sneha in D:\SnehalImp\git\recommendation-2-0\backend)
+2025-10-12 01:16:31.389 DEBUG 25912 --- [main] t.a.r.RecommendationApplication          : Running with Spring Boot v2.6.1, Spring v5.3.13
+2025-10-12 01:16:31.389  INFO 25912 --- [main] t.a.r.RecommendationApplication          : No active profile set, falling back to default profiles: default
+2025-10-12 01:16:32.074  INFO 25912 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-10-12 01:16:32.264  INFO 25912 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 176 ms. Found 2 JPA repository interfaces.
+2025-10-12 01:16:33.063  INFO 25912 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port(s): 8082 (http)
+2025-10-12 01:16:33.072  INFO 25912 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-10-12 01:16:33.072  INFO 25912 --- [main] org.apache.catalina.core.StandardEngine  : Starting Servlet engine: [Apache Tomcat/9.0.55]
+2025-10-12 01:16:33.222  INFO 25912 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-10-12 01:16:33.222  INFO 25912 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1763 ms
+2025-10-12 01:16:33.331  INFO 25912 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-10-12 01:16:33.449  INFO 25912 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-10-12 01:16:33.562  INFO 25912 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-10-12 01:16:33.625  INFO 25912 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 5.6.15.Final
+2025-10-12 01:16:33.798  INFO 25912 --- [main] o.hibernate.annotations.common.Version   : HCANN000001: Hibernate Commons Annotations {5.1.2.Final}
+2025-10-12 01:16:33.916  INFO 25912 --- [main] org.hibernate.dialect.Dialect            : HHH000400: Using dialect: tech.algofinserve.recommendation.common.datastore.SQLiteDialect
+2025-10-12 01:16:34.500  INFO 25912 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000490: Using JtaPlatform implementation: [org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform]
+2025-10-12 01:16:34.510  INFO 25912 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-10-12 01:16:35.617  WARN 25912 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-10-12 01:16:36.201  INFO 25912 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8082 (http) with context path ''
+2025-10-12 01:16:36.227  INFO 25912 --- [main] t.a.r.RecommendationApplication          : Started RecommendationApplication in 5.356 seconds (JVM running for 5.884)
+2025-10-12 01:16:36.256  INFO 25912 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @shreejitrades
+2025-10-12 01:16:36.257  INFO 25912 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @shreejitrades
+2025-10-12 01:16:36.258  INFO 25912 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @ideastoinvest
+2025-10-12 01:16:36.258  INFO 25912 --- [main] t.a.r.messaging.MessagingServiceNew      : 💬 MessagingService initialized for chat: @ideastoinvest
+2025-10-12 01:16:36.259  INFO 25912 --- [main] t.a.r.c.ChartInkAlertProcessingService   : Messaging Service Started.....
+2025-10-12 01:16:43.018  INFO 25912 --- [http-nio-8082-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-10-12 01:16:43.019  INFO 25912 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-10-12 01:16:43.020  INFO 25912 --- [http-nio-8082-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-10-12 01:16:43.113  INFO 25912 --- [http-nio-8082-exec-2] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:16:44.123  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:44.128  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :1 :failed :0
+2025-10-12 01:16:44.158  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:44.158  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :2 :failed :0
+2025-10-12 01:16:44.402  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:44.403  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :3 :failed :0
+2025-10-12 01:16:44.459  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:44.459  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :4 :failed :0
+2025-10-12 01:16:44.607  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:44.607  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :5 :failed :0
+2025-10-12 01:16:44.999  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:44.999  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :6 :failed :0
+2025-10-12 01:16:45.118  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:45.118  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :7 :failed :0
+2025-10-12 01:16:47.332  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:47.332  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :8 :failed :0
+2025-10-12 01:16:55.395  INFO 25912 --- [http-nio-8082-exec-3] t.a.r.controller.ChartinkController      : Alert [stocks=TCS,BEML,ADANIENT,HDFCBANK,DLF,PFS,MPS,REC, triggerPrices=2003.15,824.5,391.65,400.0,500.9,9.0,20.0,3.9,14.1,15.2, triggerdAt=12:18 pm, scanName=Snehal_Hourly_BUY_Intraday_Shortterm_Bullish5]
+2025-10-12 01:16:56.152  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.152  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.152  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :9 :failed :0
+2025-10-12 01:16:56.152  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :10 :failed :0
+2025-10-12 01:16:56.236  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.236  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.236  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :11 :failed :0
+2025-10-12 01:16:56.236  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :12 :failed :0
+2025-10-12 01:16:56.317  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.318  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :13 :failed :0
+2025-10-12 01:16:56.572  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.572  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :14 :failed :0
+2025-10-12 01:16:56.992  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.992  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :15 :failed :0
+2025-10-12 01:16:56.995  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200
+2025-10-12 01:16:56.995  INFO 25912 --- [OkHttp https://api.telegram.org/...] t.a.r.messaging.TelegramMessagingNew     : 200: success count :16 :failed :0

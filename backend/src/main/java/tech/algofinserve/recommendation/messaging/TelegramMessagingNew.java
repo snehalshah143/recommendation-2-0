@@ -74,6 +74,7 @@ public class TelegramMessagingNew {
 
   private void sendAsyncInternal(String chatId, String text) {
     String token = nextToken();
+ //   logger.info("Telegram Token Used::"+token);
     String url = "https://api.telegram.org/bot" + token + "/sendMessage";
 
     RequestBody body = new FormBody.Builder()
@@ -93,8 +94,10 @@ public class TelegramMessagingNew {
 
       @Override
       public void onResponse(Call call, Response response) {
+        int code=0;
         try (response) {
-          int code = response.code();
+          code = response.code();
+          logger.info(String.valueOf(code));
           if (code == 200) {
             SUCCESS.incrementAndGet();
           } else if (code == 429) {
@@ -108,6 +111,7 @@ public class TelegramMessagingNew {
         } catch (IOException e) {
           FAILED.incrementAndGet();
         }
+        logger.info(code+": success count :"+SUCCESS +" :failed :"+FAILED);
       }
     });
   }
