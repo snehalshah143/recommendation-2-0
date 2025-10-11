@@ -50,6 +50,17 @@ public class AsyncConfiguration {
     return new LinkedBlockingQueue<>(1000);
   }
 
+  @Bean(name = "taskExecutorTelegramMessaging")
+  public Executor getAsyncExecutorTelegramMessaging() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(5);
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(1000);
+    executor.setThreadNamePrefix("ThreadPool-TelegramMessaging-");
+    executor.initialize();
+    return executor;
+  }
+
   @Bean(name = "taskExecutorBuy")
   public Executor getAsyncExecutorBuy() {
     ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

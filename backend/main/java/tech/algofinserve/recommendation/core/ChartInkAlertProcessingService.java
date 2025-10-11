@@ -19,8 +19,8 @@ import tech.algofinserve.recommendation.alerts.service.AlertService;
 import tech.algofinserve.recommendation.cache.ChartInkAlertFactory;
 import tech.algofinserve.recommendation.constants.BuySell;
 import tech.algofinserve.recommendation.helper.StockAlertOutputHelper;
-import tech.algofinserve.recommendation.messaging.MessagingService;
-import tech.algofinserve.recommendation.messaging.TelegramMessaging;
+import tech.algofinserve.recommendation.messaging.MessagingServiceNew;
+
 import tech.algofinserve.recommendation.messaging.TelegramSenderPool;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
@@ -58,7 +58,9 @@ public class ChartInkAlertProcessingService {
 //  TelegramMessaging telegramMessagingNormal;
 //  TelegramMessaging telegramMessagingEOD;
 
-  Function<String, Boolean> sendMessageNormal =
+  String normalChatId="@shreejitrades";
+  String eodChatId= "@ideastoinvest";
+/*  Function<String, Boolean> sendMessageNormal =
       p -> {
      //   return telegramMessagingNormal.sendMessage2(p);
         return telegramSenderPool.sendAndWait("@shreejitrades",p,10000);
@@ -68,16 +70,20 @@ public class ChartInkAlertProcessingService {
       p -> {
    //     return telegramMessagingEOD.sendMessageEOD(p);
         return telegramSenderPool.sendAndWait("@ideastoinvest",p,10000);
-      };
+      };*/
 
   @EventListener(ApplicationReadyEvent.class)
   public void startMessagingService() throws Exception {
 //    telegramMessagingNormal=new TelegramMessaging();
  //   telegramMessagingEOD=new TelegramMessaging();
-    new Thread(new MessagingService(messageQueueBuy, sendMessageNormal)).start();
-    new Thread(new MessagingService(messageQueueSell, sendMessageNormal)).start();
-    new Thread(new MessagingService(messageQueueBuyEOD, sendMessageEOD)).start();
-    new Thread(new MessagingService(messageQueueSellEOD, sendMessageEOD)).start();
+ //   new Thread(new MessagingService(messageQueueBuy, sendMessageNormal)).start();
+ //   new Thread(new MessagingService(messageQueueSell, sendMessageNormal)).start();
+ //   new Thread(new MessagingService(messageQueueBuyEOD, sendMessageEOD)).start();
+ //   new Thread(new MessagingService(messageQueueSellEOD, sendMessageEOD)).start();
+    new Thread(new MessagingServiceNew(messageQueueBuy, normalChatId,telegramSenderPool)).start();
+    new Thread(new MessagingServiceNew(messageQueueSell, normalChatId,telegramSenderPool)).start();
+    new Thread(new MessagingServiceNew(messageQueueBuyEOD, eodChatId,telegramSenderPool)).start();
+    new Thread(new MessagingServiceNew(messageQueueSellEOD, eodChatId,telegramSenderPool)).start();
     //    new Thread(new MessagingService(messageQueueBuy)).start();
     //    new Thread(new MessagingService(messageQueueSell)).start();
     System.out.println("Messaging Service Started.....");
