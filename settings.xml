@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 
+          http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  
+  <!-- Local repository path -->
+  <localRepository>${user.home}/.m2/repository</localRepository>
+  
+  <!-- Mirrors for faster downloads -->
+  <mirrors>
+    <mirror>
+      <id>central-mirror</id>
+      <name>Central Repository Mirror</name>
+      <url>https://repo1.maven.org/maven2</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+  
+  <!-- Profiles for optimization -->
+  <profiles>
+    <profile>
+      <id>fast-build</id>
+      <properties>
+        <maven.compiler.fork>true</maven.compiler.fork>
+        <maven.compiler.maxmem>1024m</maven.compiler.maxmem>
+        <maven.test.skip>true</maven.test.skip>
+        <maven.javadoc.skip>true</maven.javadoc.skip>
+      </properties>
+    </profile>
+  </profiles>
+  
+  <!-- Active profiles -->
+  <activeProfiles>
+    <activeProfile>fast-build</activeProfile>
+  </activeProfiles>
+</settings>
+
+
+
+
