@@ -2,7 +2,10 @@ FROM maven:3.8.8-openjdk-11 AS build
 WORKDIR /app
 COPY pom.xml .
 COPY src ./src
-RUN mvn clean package -DskipTests
+COPY libs/ ./libs/
+COPY sqlliteadvisory.db ./sqlliteadvisory.db
+#RUN mvn clean package -DskipTests
+RUN mvn clean package spring-boot:repackage
 
 # Use official Amazon Corretto 11 runtime (pre-built Java runtime)
 FROM openjdk:11-jre-slim
