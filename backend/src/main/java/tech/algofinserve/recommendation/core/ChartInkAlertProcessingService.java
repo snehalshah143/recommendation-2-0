@@ -26,6 +26,7 @@ import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
 import tech.algofinserve.recommendation.model.domain.StockAlertOutput;
 import tech.algofinserve.recommendation.report.ReportGenerator;
+import tech.algofinserve.recommendation.report.TelegramReportSender;
 
 @Service
 public class ChartInkAlertProcessingService {
@@ -57,6 +58,9 @@ public class ChartInkAlertProcessingService {
 
   @Autowired
   TelegramSenderPool telegramSenderPool;
+
+  @Autowired
+  TelegramReportSender telegramReportSender;
 //  TelegramMessaging telegramMessagingNormal;
 //  TelegramMessaging telegramMessagingEOD;
 
@@ -352,6 +356,7 @@ public class ChartInkAlertProcessingService {
       clearPreviousDayData();
      // System.out.println("Data Cleared For ::" + fileDate);
       logger.info("Data Cleared For ::" + fileDate);
+      telegramReportSender.sendChartinkReport(stockAlertReportFileName);
      // System.out.println("Email Sent For Date ::" + fileDate);
      // System.out.println("Total Alerts Today ::" + alertCount);
       logger.info("Email Sent For Date ::" + fileDate);
