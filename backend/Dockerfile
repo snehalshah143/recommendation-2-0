@@ -8,8 +8,8 @@ COPY sqlliteadvisory.db ./sqlliteadvisory.db
 RUN mvn clean package spring-boot:repackage
 
 # Use official Amazon Corretto 11 runtime (pre-built Java runtime)
-FROM openjdk:11-jre-slim
-
+#FROM openjdk:11-jre-slim
+FROM eclipse-temurin:11-jre
 # Set working directory inside container
 WORKDIR /app
 
