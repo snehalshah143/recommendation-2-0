@@ -24,7 +24,7 @@ public class ScheduledTasks {
   }
 //  @Scheduled(cron = "0 58 15 * * ?") // Cron expression for running every minute
 //  @Scheduled(cron = "0 00 23 * * ?") // Cron expression for running every minute
-  @Scheduled(cron = "0 43 23 * * ?", zone = "Asia/Kolkata")
+  @Scheduled(cron = "0 49 23 * * ?", zone = "Asia/Kolkata")
   public void execute() {
 
 
