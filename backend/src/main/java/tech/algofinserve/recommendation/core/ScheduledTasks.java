@@ -24,7 +24,7 @@ public class ScheduledTasks {
   }
 //  @Scheduled(cron = "0 58 15 * * ?") // Cron expression for running every minute
 //  @Scheduled(cron = "0 00 23 * * ?") // Cron expression for running every minute
-  @Scheduled(cron = "0 05 23 * * ?", zone = "Asia/Kolkata")
+  @Scheduled(cron = "0 20 23 * * ?", zone = "Asia/Kolkata")
   public void execute() {
     alertProcessing.generateStockAlertOutputReport();
     logger.info("Scheduler ran for report genration::" + new Date());
