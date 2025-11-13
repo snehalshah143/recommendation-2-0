@@ -342,11 +342,11 @@ public class ChartInkAlertProcessingService {
 
   public boolean generateStockAlertOutputReport() {
 
-    String reportDir = "/opt/render/project/src/reports";
-
+    //String reportDir = "/opt/render/project/src/reports";
+    String reportDir = "\\app\\reports";
     try {
-      Files.createDirectories(Paths.get(reportDir));
-      String stockAlertReportFileName = reportDir + "/chartink_report_DDMMYYYY.csv";
+      //Files.createDirectories(Paths.get(reportDir));
+      String stockAlertReportFileName = reportDir + "\\chartink_report_DDMMYYYY.csv";
       //String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
       Date date = new Date();
 
