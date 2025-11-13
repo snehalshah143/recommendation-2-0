@@ -338,7 +338,7 @@ public class ChartInkAlertProcessingService {
   }
 
   public boolean generateStockAlertOutputReport() {
-    String stockAlertReportFileName = "reports\\chartink_report_DDMMYYYY.csv";
+    String stockAlertReportFileName = "chartink_report_DDMMYYYY.csv";
     //String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
     try {
       Date date = new Date();
