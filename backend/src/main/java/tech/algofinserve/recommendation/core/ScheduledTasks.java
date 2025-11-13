@@ -10,8 +10,8 @@ public class ScheduledTasks {
 
   @Autowired private ChartInkAlertProcessingService alertProcessing;
 
-  @Scheduled(cron = "0 59 15 * * ?") // Cron expression for running every minute
-//  @Scheduled(cron = "0 15 09 * * ?") // Cron expression for running every minute
+//  @Scheduled(cron = "0 59 15 * * ?") // Cron expression for running every minute
+  @Scheduled(cron = "0 00 23 * * ?") // Cron expression for running every minute
   public void execute() {
     alertProcessing.generateStockAlertOutputReport();
     System.out.println("Scheduler ran for report genration::" + new Date());
