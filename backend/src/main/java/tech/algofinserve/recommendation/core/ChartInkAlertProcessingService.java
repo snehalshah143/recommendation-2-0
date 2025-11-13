@@ -1,5 +1,8 @@
 package tech.algofinserve.recommendation.core;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -338,9 +341,13 @@ public class ChartInkAlertProcessingService {
   }
 
   public boolean generateStockAlertOutputReport() {
-    String stockAlertReportFileName = "chartink_report_DDMMYYYY.csv";
-    //String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
+
+    String reportDir = "/opt/render/project/src/reports";
+
     try {
+      Files.createDirectories(Paths.get(reportDir));
+      String stockAlertReportFileName = reportDir + "/chartink_report_DDMMYYYY.csv";
+      //String stockAlertReportFileName = "D:\\Report\\Chartink\\chartink_report_DDMMYYYY.csv";
       Date date = new Date();
 
       String fileDate = formatter_DDMMYYYY.format(date);

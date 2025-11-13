@@ -30,4 +30,9 @@ public class ScheduledTasks {
     logger.info("Scheduler ran for report genration::" + new Date());
     System.out.println("Scheduler ran for report genration::" + new Date());
   }
+
+  @Scheduled(cron = "0 */1 * * * ?", zone = "Asia/Kolkata")
+  public void healthCheck() {
+    System.out.println("🔔 Scheduler heartbeat: " + new Date());
+  }
 }
