@@ -17,9 +17,14 @@ import java.util.regex.Pattern;
 @Service
 public class TelegramMessagingNew {
   private static final Logger logger = LoggerFactory.getLogger(TelegramMessagingNew.class);
-  static String ideas2InvestBotTelegramToken = "9026304112:AAFznPugOOF3_d8_yJ34q_hV11jri5qjECY";
-  static String ideas2Invest2BotTelegramToken = "8991375476:AAHP0fRPCFu3GeOtq5dDe1kaGTJinNHM-q8";
-  static String ideas2Invest3BotTelegramToken = "9210658734:AAEDXq-_18pFyH9Z7RB7HVX6iLAsk2tGXME";
+
+  static String ideas2InvestBotTelegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
+  static String ideas2Invest2BotTelegramToken = "8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU";
+  static String ideas2Invest3BotTelegramToken = "8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE";
+
+  //static String ideas2InvestBotTelegramToken = "9026304112:AAFznPugOOF3_d8_yJ34q_hV11jri5qjECY";
+  //static String ideas2Invest2BotTelegramToken = "8991375476:AAHP0fRPCFu3GeOtq5dDe1kaGTJinNHM-q8";
+  //static String ideas2Invest3BotTelegramToken = "9210658734:AAEDXq-_18pFyH9Z7RB7HVX6iLAsk2tGXME";
   private static final List<String> TELEGRAM_TOKENS = List.of(
           ideas2InvestBotTelegramToken,
           ideas2Invest2BotTelegramToken,
