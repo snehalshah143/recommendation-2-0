@@ -23,7 +23,7 @@ COPY target/recommendation-0.0.1-SNAPSHOT.jar app.jar
 
 RUN mkdir -p /app/reports
 RUN mkdir -p /app/logs
-# Expose port 8080 for Spring Boot
+# Render assigns PORT dynamically; app reads it via server.port=${PORT:8082}
 EXPOSE 8082
 
 # Run the application
