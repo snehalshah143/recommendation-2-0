@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,11 +19,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tech.algofinserve.recommendation.alerts.dto.AlertDto;
 import tech.algofinserve.recommendation.alerts.service.AlertService;
-import tech.algofinserve.recommendation.cache.ChartInkAlertFactory;
+import tech.algofinserve.recommendation.cache.RedisAlertCache;
 import tech.algofinserve.recommendation.constants.BuySell;
 import tech.algofinserve.recommendation.helper.StockAlertOutputHelper;
 import tech.algofinserve.recommendation.messaging.MessagingServiceNew;
-import tech.algofinserve.recommendation.messaging.TelegramSenderPool;
+import tech.algofinserve.recommendation.messaging.TelegramMessagingNew;
 import tech.algofinserve.recommendation.model.domain.Alert;
 import tech.algofinserve.recommendation.model.domain.StockAlert;
 import tech.algofinserve.recommendation.model.domain.StockAlertOutput;
@@ -38,6 +37,7 @@ public class ChartInkAlertProcessingService {
 
   Format formatter_DDMMYYYY = new SimpleDateFormat("yyyy-MM-dd");
   @Autowired private AlertService alertService;
+  @Autowired private RedisAlertCache redisAlertCache;
   private static final AtomicInteger alertCount = new AtomicInteger(0);
   @Autowired
   @Qualifier("dbQueue")
@@ -60,7 +60,7 @@ public class ChartInkAlertProcessingService {
   BlockingQueue<String> messageQueueSellEOD;
 
   @Autowired
-  TelegramSenderPool telegramSenderPool;
+  TelegramMessagingNew telegramMessagingNew;
 
   @Autowired
   TelegramReportSender telegramReportSender;
@@ -89,10 +89,10 @@ public class ChartInkAlertProcessingService {
  //   new Thread(new MessagingService(messageQueueSell, sendMessageNormal)).start();
  //   new Thread(new MessagingService(messageQueueBuyEOD, sendMessageEOD)).start();
  //   new Thread(new MessagingService(messageQueueSellEOD, sendMessageEOD)).start();
-    new Thread(new MessagingServiceNew(messageQueueBuy, normalChatId,telegramSenderPool)).start();
-    new Thread(new MessagingServiceNew(messageQueueSell, normalChatId,telegramSenderPool)).start();
-    new Thread(new MessagingServiceNew(messageQueueBuyEOD, eodChatId,telegramSenderPool)).start();
-    new Thread(new MessagingServiceNew(messageQueueSellEOD, eodChatId,telegramSenderPool)).start();
+    new Thread(new MessagingServiceNew(messageQueueBuy, normalChatId, telegramMessagingNew)).start();
+    new Thread(new MessagingServiceNew(messageQueueSell, normalChatId, telegramMessagingNew)).start();
+    new Thread(new MessagingServiceNew(messageQueueBuyEOD, eodChatId, telegramMessagingNew)).start();
+    new Thread(new MessagingServiceNew(messageQueueSellEOD, eodChatId, telegramMessagingNew)).start();
     //    new Thread(new MessagingService(messageQueueBuy)).start();
     //    new Thread(new MessagingService(messageQueueSell)).start();
    // System.out.println("Messaging Service Started.....");
@@ -111,38 +111,16 @@ public class ChartInkAlertProcessingService {
       StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.BUY);
 
 
-      if (ChartInkAlertFactory.buyStockAlertListForStockNameMap.containsKey(
-          stockAlert.getStockCode())) {
-        ChartInkAlertFactory.buyStockAlertListForStockNameMap
-            .get(stockAlert.getStockCode())
-            .add(stockAlert);
-        String recommendation = "R::" + stockAlert.toString();
-        messageQueueBuy.put(recommendation);
-        //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+      if (redisAlertCache.buyStockExists(stockAlert.getStockCode())) {
+        redisAlertCache.addToBuyStockAlerts(stockAlert.getStockCode(), stockAlert);
+        messageQueueBuy.put("R::" + stockAlert.toString());
       } else {
-        //  TelegramMessaging.sendMessage2(stockAlert.toString());
         messageQueueBuy.put(stockAlert.toString());
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.buyStockAlertListForStockNameMap.put(
-            stockAlert.getStockCode(), stockAlertList);
+        redisAlertCache.addToBuyStockAlerts(stockAlert.getStockCode(), stockAlert);
       }
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.BUY);
-    //  alertService.processIncomingAlert(alertDto);
       dbQueue.put(alertDto);
-
-      if (ChartInkAlertFactory.buyStockAlertListForScanNameMap.containsKey(
-          stockAlert.getScanName())) {
-        ChartInkAlertFactory.buyStockAlertListForScanNameMap
-            .get(stockAlert.getScanName())
-            .add(stockAlert);
-      } else {
-
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.buyStockAlertListForScanNameMap.put(
-            stockAlert.getScanName(), stockAlertList);
-      }
+      redisAlertCache.addToBuyScanAlerts(stockAlert.getScanName(), stockAlert);
     }
   }
 
@@ -156,38 +134,17 @@ public class ChartInkAlertProcessingService {
 
       StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.BUY);
 
-      if (ChartInkAlertFactory.buyStockAlertListForStockNameMap.containsKey(
-          stockAlert.getStockCode())) {
-        ChartInkAlertFactory.buyStockAlertListForStockNameMap
-            .get(stockAlert.getStockCode())
-            .add(stockAlert);
-        String recommendation = "R::" + stockAlert.toString();
-        messageQueueBuyEOD.put(recommendation);
-        //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+      if (redisAlertCache.buyStockExists(stockAlert.getStockCode())) {
+        redisAlertCache.addToBuyStockAlerts(stockAlert.getStockCode(), stockAlert);
+        messageQueueBuyEOD.put("R::" + stockAlert.toString());
       } else {
-        //  TelegramMessaging.sendMessage2(stockAlert.toString());
         messageQueueBuyEOD.put(stockAlert.toString());
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.buyStockAlertListForStockNameMap.put(
-            stockAlert.getStockCode(), stockAlertList);
+        redisAlertCache.addToBuyStockAlerts(stockAlert.getStockCode(), stockAlert);
       }
 
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.BUY);
-    //  alertService.processIncomingAlert(alertDto);
       dbQueue.put(alertDto);
-      if (ChartInkAlertFactory.buyStockAlertListForScanNameMap.containsKey(
-          stockAlert.getScanName())) {
-        ChartInkAlertFactory.buyStockAlertListForScanNameMap
-            .get(stockAlert.getScanName())
-            .add(stockAlert);
-      } else {
-
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.buyStockAlertListForScanNameMap.put(
-            stockAlert.getScanName(), stockAlertList);
-      }
+      redisAlertCache.addToBuyScanAlerts(stockAlert.getScanName(), stockAlert);
     }
   }
 
@@ -201,38 +158,17 @@ public class ChartInkAlertProcessingService {
 
       StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.SELL);
 
-      if (ChartInkAlertFactory.sellStockAlertListForStockNameMap.containsKey(
-          stockAlert.getStockCode())) {
-        ChartInkAlertFactory.sellStockAlertListForStockNameMap
-            .get(stockAlert.getStockCode())
-            .add(stockAlert);
-        String recommendation = "R::" + stockAlert.toString();
-        messageQueueSell.put(recommendation);
-        //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+      if (redisAlertCache.sellStockExists(stockAlert.getStockCode())) {
+        redisAlertCache.addToSellStockAlerts(stockAlert.getStockCode(), stockAlert);
+        messageQueueSell.put("R::" + stockAlert.toString());
       } else {
-        //  TelegramMessaging.sendMessage2(stockAlert.toString());
         messageQueueSell.put(stockAlert.toString());
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.sellStockAlertListForStockNameMap.put(
-            stockAlert.getStockCode(), stockAlertList);
+        redisAlertCache.addToSellStockAlerts(stockAlert.getStockCode(), stockAlert);
       }
 
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.SELL);
-     // alertService.processIncomingAlert(alertDto);
       dbQueue.put(alertDto);
-      if (ChartInkAlertFactory.sellStockAlertListForScanNameMap.containsKey(
-          stockAlert.getScanName())) {
-        ChartInkAlertFactory.sellStockAlertListForScanNameMap
-            .get(stockAlert.getScanName())
-            .add(stockAlert);
-      } else {
-
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.sellStockAlertListForScanNameMap.put(
-            stockAlert.getScanName(), stockAlertList);
-      }
+      redisAlertCache.addToSellScanAlerts(stockAlert.getScanName(), stockAlert);
     }
   }
 
@@ -246,38 +182,17 @@ public class ChartInkAlertProcessingService {
 
       StockAlert stockAlert = convertAlertToStockAlert(alert, stocksName, prices, i, BuySell.SELL);
 
-      if (ChartInkAlertFactory.sellStockAlertListForStockNameMap.containsKey(
-          stockAlert.getStockCode())) {
-        ChartInkAlertFactory.sellStockAlertListForStockNameMap
-            .get(stockAlert.getStockCode())
-            .add(stockAlert);
-        String recommendation = "R::" + stockAlert.toString();
-        messageQueueSellEOD.put(recommendation);
-        //   TelegramMessaging.sendMessage2("R::"+stockAlert.toString());
+      if (redisAlertCache.sellStockExists(stockAlert.getStockCode())) {
+        redisAlertCache.addToSellStockAlerts(stockAlert.getStockCode(), stockAlert);
+        messageQueueSellEOD.put("R::" + stockAlert.toString());
       } else {
-        //  TelegramMessaging.sendMessage2(stockAlert.toString());
         messageQueueSellEOD.put(stockAlert.toString());
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.sellStockAlertListForStockNameMap.put(
-            stockAlert.getStockCode(), stockAlertList);
+        redisAlertCache.addToSellStockAlerts(stockAlert.getStockCode(), stockAlert);
       }
 
       AlertDto alertDto = convertAlertToAlertDto(alert, stocksName, prices, i, BuySell.SELL);
-   //   alertService.processIncomingAlert(alertDto);
       dbQueue.put(alertDto);
-      if (ChartInkAlertFactory.sellStockAlertListForScanNameMap.containsKey(
-          stockAlert.getScanName())) {
-        ChartInkAlertFactory.sellStockAlertListForScanNameMap
-            .get(stockAlert.getScanName())
-            .add(stockAlert);
-      } else {
-
-        List<StockAlert> stockAlertList = new CopyOnWriteArrayList<>();
-        stockAlertList.add(stockAlert);
-        ChartInkAlertFactory.sellStockAlertListForScanNameMap.put(
-            stockAlert.getScanName(), stockAlertList);
-      }
+      redisAlertCache.addToSellScanAlerts(stockAlert.getScanName(), stockAlert);
     }
   }
 
@@ -336,8 +251,7 @@ public class ChartInkAlertProcessingService {
   }
 
   public void clearPreviousDayData() {
-    ChartInkAlertFactory.buyStockAlertListForStockNameMap.clear();
-    ChartInkAlertFactory.sellStockAlertListForStockNameMap.clear();
+    redisAlertCache.clearAll();
   }
 
   public boolean generateStockAlertOutputReport() {
@@ -356,7 +270,7 @@ public class ChartInkAlertProcessingService {
       logger.info("stockAlertReportFileName ::" + stockAlertReportFileName);
       ReportGenerator reportGenerator = new ReportGenerator();
       List<StockAlertOutput> stockRankOutputList =
-          StockAlertOutputHelper.buildStockAlertOutputList();
+          StockAlertOutputHelper.buildStockAlertOutputList(redisAlertCache);
       reportGenerator.generateStockRankReport(stockAlertReportFileName, stockRankOutputList);
     //  System.out.println("Report Generated ::" + stockAlertReportFileName);
       logger.info("Report Generated ::" + stockAlertReportFileName);

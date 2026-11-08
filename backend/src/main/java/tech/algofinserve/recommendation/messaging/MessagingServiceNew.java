@@ -2,15 +2,10 @@ package tech.algofinserve.recommendation.messaging;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 
@@ -18,29 +13,21 @@ public class MessagingServiceNew implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(MessagingServiceNew.class);
     private final BlockingQueue<String> messageQueue;
     private final String chatId;
- //   private TelegramMessagingNew telegramMessaging;
+    private final TelegramMessagingNew telegramMessaging;
 
-    private TelegramSenderPool telegramSenderPool;
-    private static final int BATCH_SIZE = 5;          // Max messages per Telegram send
-    private static final int BATCH_WAIT_MS = 200;     // Wait up to 200ms to fill batch
-    private static final int SLEEP_BETWEEN_BATCHES = 50; // 50ms pause between sends
+    private static final int SLEEP_BETWEEN_SENDS = 50; // minimal breathing room
 
     public MessagingServiceNew(
             BlockingQueue<String> messageQueue,
             String chatId,
-            //TelegramMessagingNew telegramMessaging
-            TelegramSenderPool telegramSenderPool
-           // @Qualifier("taskExecutorTelegramMessaging") Executor taskExecutor
+            TelegramMessagingNew telegramMessaging
     ) {
         this.messageQueue = messageQueue;
-        this.chatId=chatId;
-        this.telegramSenderPool=telegramSenderPool;
-     //   this.telegramMessaging=telegramMessaging;
-        logger.info("💬 MessagingService initialized for chat: " + chatId);
-
+        this.chatId = chatId;
+        this.telegramMessaging = telegramMessaging;
+        logger.info("MessagingService initialized for chat: " + chatId);
     }
 
-    @PostConstruct
     public void start() {
         Thread thread = new Thread(this, "MessagingService-" + chatId);
         thread.setDaemon(true);
@@ -51,12 +38,9 @@ public class MessagingServiceNew implements Runnable {
     public void run() {
         try {
             while (true) {
-              //  String msg = takeBatch(messageQueue, 10);
                 String msg = messageQueue.take();
-    ;
-             //   telegramMessaging.sendMessageAsync(chatId,msg);
-                telegramSenderPool.sendAsync(chatId,msg);
-                Thread.sleep(SLEEP_BETWEEN_BATCHES);
+                telegramMessaging.sendMessageAsync(chatId, msg);
+                Thread.sleep(SLEEP_BETWEEN_SENDS);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

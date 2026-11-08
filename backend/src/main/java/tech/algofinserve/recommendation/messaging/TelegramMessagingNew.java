@@ -14,24 +14,32 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.Semaphore;
 @Service
 public class TelegramMessagingNew {
   private static final Logger logger = LoggerFactory.getLogger(TelegramMessagingNew.class);
 
-  static String ideas2InvestBotTelegramToken = "6552278371:AAHhYOrBcC1ccls6BVTwF9UoOjFjc8Zj9p8";
-  static String ideas2Invest2BotTelegramToken = "8334294677:AAEyr8gzPNEN9h2Y8jQfWWuU2d0AGInnxKU";
-  static String ideas2Invest3BotTelegramToken = "8323993449:AAHGPMyou9JAKpgkh__c-UttS-pzOIbSCCE";
+  // Tokens loaded from application.properties (telegram.bot.token1 through token5)
+  private static volatile List<String> TELEGRAM_TOKENS = List.of();
 
-  //static String ideas2InvestBotTelegramToken = "9026304112:AAFznPugOOF3_d8_yJ34q_hV11jri5qjECY";
-  //static String ideas2Invest2BotTelegramToken = "8991375476:AAHP0fRPCFu3GeOtq5dDe1kaGTJinNHM-q8";
-  //static String ideas2Invest3BotTelegramToken = "9210658734:AAEDXq-_18pFyH9Z7RB7HVX6iLAsk2tGXME";
-  private static final List<String> TELEGRAM_TOKENS = List.of(
-          ideas2InvestBotTelegramToken,
-          ideas2Invest2BotTelegramToken,
-          ideas2Invest3BotTelegramToken
-  );
-  private static final int TOKEN_COUNT = TELEGRAM_TOKENS.size();
+  @org.springframework.beans.factory.annotation.Value("${telegram.bot.token1}")
+  private String token1;
+  @org.springframework.beans.factory.annotation.Value("${telegram.bot.token2}")
+  private String token2;
+  @org.springframework.beans.factory.annotation.Value("${telegram.bot.token3}")
+  private String token3;
+  @org.springframework.beans.factory.annotation.Value("${telegram.bot.token4:}")
+  private String token4;
+  @org.springframework.beans.factory.annotation.Value("${telegram.bot.token5:}")
+  private String token5;
 
+  @javax.annotation.PostConstruct
+  public void initTokens() {
+    TELEGRAM_TOKENS = java.util.Arrays.stream(new String[]{token1, token2, token3, token4, token5})
+        .filter(t -> t != null && !t.isEmpty())
+        .collect(java.util.stream.Collectors.toList());
+    logger.info("Telegram tokens loaded: {} token(s) configured", TELEGRAM_TOKENS.size());
+  }
   private static final AtomicInteger TOKEN_INDEX = new AtomicInteger(0);
 
   private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
@@ -53,24 +61,31 @@ public class TelegramMessagingNew {
 
   private static final AtomicInteger SUCCESS = new AtomicInteger(0);
   private static final AtomicInteger FAILED = new AtomicInteger(0);
+  // 1 permit — strictly sequential sends, prevents burst 429
+  private static final Semaphore SEND_SEMAPHORE = new Semaphore(1);
+  // Global pause timestamp — when 429 received, all sends wait until this time
+  private static volatile long pauseUntil = 0;
+
   // Default constructor (uses internal thread pool)
   public TelegramMessagingNew() {
-    this(Executors.newFixedThreadPool(6));
+    this(Executors.newFixedThreadPool(3));
   }
 
   // Spring-injected constructor
   public TelegramMessagingNew(@Qualifier("taskExecutorTelegramMessaging")
                               Executor executor) {
 
-    this.sendExecutor = Executors.newFixedThreadPool(8);
+    this.sendExecutor = Executors.newFixedThreadPool(3); // 3 threads = 1 per bot token
     this.retryScheduler = Executors.newScheduledThreadPool(2);
     startRetryWorker();
   //  logger.info("✅ TelegramMessaging initialized using executor: " + executor.getClass().getSimpleName());
   }
 
   private static String getTelegramToken() {
-    int current = TOKEN_INDEX.getAndUpdate(i -> (i + 1) % TELEGRAM_TOKENS.size());
-    return TELEGRAM_TOKENS.get(current);
+    List<String> tokens = TELEGRAM_TOKENS;
+    if (tokens.isEmpty()) throw new IllegalStateException("No Telegram tokens configured");
+    int current = TOKEN_INDEX.getAndUpdate(i -> (i + 1) % tokens.size());
+    return tokens.get(current);
   }
 
   public void sendMessageAsync(String chatId, String text) {
@@ -78,8 +93,26 @@ public class TelegramMessagingNew {
   }
 
   private void sendAsyncInternal(String chatId, String text) {
+    // If rate limited, wait until Telegram's window clears before sending
+    long wait = pauseUntil - System.currentTimeMillis();
+    if (wait > 0) {
+      try {
+        logger.info("Rate limited — pausing {}ms before next send", wait);
+        Thread.sleep(wait);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        return;
+      }
+    }
+
+    try {
+      SEND_SEMAPHORE.acquire();
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return;
+    }
+
     String token = nextToken();
- //   logger.info("Telegram Token Used::"+token);
     String url = "https://api.telegram.org/bot" + token + "/sendMessage";
 
     RequestBody body = new FormBody.Builder()
@@ -92,14 +125,16 @@ public class TelegramMessagingNew {
     CLIENT.newCall(request).enqueue(new Callback() {
       @Override
       public void onFailure(Call call, IOException e) {
+        SEND_SEMAPHORE.release();
         FAILED.incrementAndGet();
-        logger.error("🚨 Failed: " + e.getMessage());
+        logger.error("Failed: " + e.getMessage());
         retryLater(chatId, text, 3);
       }
 
       @Override
       public void onResponse(Call call, Response response) {
-        int code=0;
+        SEND_SEMAPHORE.release();
+        int code = 0;
         try (response) {
           code = response.code();
           logger.info(String.valueOf(code));
@@ -107,16 +142,21 @@ public class TelegramMessagingNew {
             SUCCESS.incrementAndGet();
           } else if (code == 429) {
             int retryAfter = extractRetryAfter(response.body() != null ? response.body().string() : null);
-            logger.info("⏳ Rate limit, retry in " + retryAfter + "s");
+            pauseUntil = System.currentTimeMillis() + retryAfter * 1000L;
+            logger.info("Rate limit — pausing all sends for {}s", retryAfter);
             retryLater(chatId, text, retryAfter);
+          } else if (code == 401) {
+            FAILED.incrementAndGet();
+            logger.error("HTTP 401 Unauthorized — bot token is invalid or revoked. Check telegram.bot.token1/2/3 in application.properties. Message dropped.");
           } else {
             FAILED.incrementAndGet();
-            logger.error("❌ HTTP " + code);
+            String errBody = response.body() != null ? response.body().string() : "null";
+            logger.error("HTTP " + code + " body: " + errBody);
           }
         } catch (IOException e) {
           FAILED.incrementAndGet();
         }
-        logger.info(code+": success count :"+SUCCESS +" :failed :"+FAILED);
+        logger.info(code + ": success count :" + SUCCESS + " :failed :" + FAILED);
       }
     });
   }
@@ -129,7 +169,9 @@ public class TelegramMessagingNew {
   }
 
   private String nextToken() {
-    return TELEGRAM_TOKENS.get(TOKEN_INDEX.getAndUpdate(i -> (i + 1) % TOKEN_COUNT));
+    List<String> tokens = TELEGRAM_TOKENS;
+    if (tokens.isEmpty()) throw new IllegalStateException("No Telegram tokens configured — check telegram.bot.token1/2/3 in application.properties");
+    return tokens.get(TOKEN_INDEX.getAndUpdate(i -> (i + 1) % tokens.size()));
   }
 
   // === Retry logic ===
@@ -140,14 +182,12 @@ public class TelegramMessagingNew {
   private void startRetryWorker() {
     retryScheduler.scheduleAtFixedRate(() -> {
       long now = System.currentTimeMillis();
-      while (!retryQueue.isEmpty()) {
-        MessageTask task = retryQueue.peek();
-        if (task != null && now >= task.scheduledTime) {
-          retryQueue.poll();
-          sendExecutor.execute(() -> sendAsyncInternal(task.chatId, task.text));
-        } else break;
+      MessageTask task = retryQueue.peek();
+      if (task != null && now >= task.scheduledTime) {
+        retryQueue.poll();
+        sendExecutor.execute(() -> sendAsyncInternal(task.chatId, task.text));
       }
-    }, 1, 500, TimeUnit.MILLISECONDS);
+    }, 1, 1000, TimeUnit.MILLISECONDS);
   }
 
   private static class MessageTask {
