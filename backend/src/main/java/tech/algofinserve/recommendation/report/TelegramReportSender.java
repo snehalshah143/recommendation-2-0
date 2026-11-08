@@ -37,6 +37,7 @@ public class TelegramReportSender {
 
             String url = "https://api.telegram.org/bot" + botToken + "/sendDocument";
 
+
             // Build multipart body
             FileSystemResource resource = new FileSystemResource(file);
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
