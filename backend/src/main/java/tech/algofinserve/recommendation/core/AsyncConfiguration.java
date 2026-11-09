@@ -3,6 +3,7 @@ package tech.algofinserve.recommendation.core;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,27 +27,23 @@ public class AsyncConfiguration {
   }
 
   @Bean(name = "messageQueueBuy")
-  public BlockingQueue<String> messageQueueBuy(StringRedisTemplate redisTemplate,
-      @Qualifier("redisObjectMapper") ObjectMapper objectMapper) {
-    return new RedisBlockingQueue<>(redisTemplate, "queue:msg-buy", String.class, objectMapper);
+  public BlockingQueue<String> messageQueueBuy() {
+    return new LinkedBlockingQueue<>(10000);
   }
 
   @Bean(name = "messageQueueSell")
-  public BlockingQueue<String> messageQueueSell(StringRedisTemplate redisTemplate,
-      @Qualifier("redisObjectMapper") ObjectMapper objectMapper) {
-    return new RedisBlockingQueue<>(redisTemplate, "queue:msg-sell", String.class, objectMapper);
+  public BlockingQueue<String> messageQueueSell() {
+    return new LinkedBlockingQueue<>(10000);
   }
 
   @Bean(name = "messageQueueBuyEOD")
-  public BlockingQueue<String> messageQueueBuyEOD(StringRedisTemplate redisTemplate,
-      @Qualifier("redisObjectMapper") ObjectMapper objectMapper) {
-    return new RedisBlockingQueue<>(redisTemplate, "queue:msg-buy-eod", String.class, objectMapper);
+  public BlockingQueue<String> messageQueueBuyEOD() {
+    return new LinkedBlockingQueue<>(10000);
   }
 
   @Bean(name = "messageQueueSellEOD")
-  public BlockingQueue<String> messageQueueSellEOD(StringRedisTemplate redisTemplate,
-      @Qualifier("redisObjectMapper") ObjectMapper objectMapper) {
-    return new RedisBlockingQueue<>(redisTemplate, "queue:msg-sell-eod", String.class, objectMapper);
+  public BlockingQueue<String> messageQueueSellEOD() {
+    return new LinkedBlockingQueue<>(10000);
   }
 
   @Bean("buyAlertQueue")
